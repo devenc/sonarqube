@@ -122,4 +122,14 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
       .setQuery(QueryBuilders.termQuery(TestIndexDefinition.FIELD_PROJECT_UUID, projectUuid));
     BulkIndexer.delete(esClient, INDEX_TYPE_TEST.getIndex(), searchRequest);
   }
+
+  @Override
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+    // FIXME
+  }
+
+  @Override
+  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
+    // FIXME
+  }
 }

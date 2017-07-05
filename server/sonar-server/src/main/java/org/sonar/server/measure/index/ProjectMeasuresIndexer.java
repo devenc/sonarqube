@@ -94,6 +94,16 @@ public class ProjectMeasuresIndexer implements ProjectIndexer, NeedAuthorization
       .get();
   }
 
+  @Override
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+    // FIXME
+  }
+
+  @Override
+  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
+    // FIXME
+  }
+
   private void doIndex(BulkIndexer bulk, @Nullable String projectUuid) {
     try (DbSession dbSession = dbClient.openSession(false);
       ProjectMeasuresIndexerIterator rowIt = ProjectMeasuresIndexerIterator.create(dbSession, projectUuid)) {

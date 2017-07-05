@@ -29,6 +29,7 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.db.DbSession;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.BulkIndexer.Size;
 import org.sonar.server.es.EsClient;
@@ -132,6 +133,16 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
       .setQuery(boolQuery().must(termQuery(FIELD_ISSUE_PROJECT_UUID, uuid)));
     bulk.addDeletion(search);
     bulk.stop();
+  }
+
+  @Override
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+    // FIXME
+  }
+
+  @Override
+  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
+    // FIXME
   }
 
   public void deleteByKeys(String projectUuid, List<String> issueKeys) {

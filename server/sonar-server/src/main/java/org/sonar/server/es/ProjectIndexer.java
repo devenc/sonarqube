@@ -19,6 +19,8 @@
  */
 package org.sonar.server.es;
 
+import org.sonar.db.DbSession;
+
 /**
  * A {@link ProjectIndexer} populates an Elasticsearch index
  * containing project-related documents, for instance issues
@@ -54,5 +56,9 @@ public interface ProjectIndexer {
    * @param projectUuid non-null UUID of project
    */
   void deleteProject(String projectUuid);
+
+  void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause);
+
+  void createEsQueueForDeletion(DbSession dbSession, String projectUuid);
 
 }

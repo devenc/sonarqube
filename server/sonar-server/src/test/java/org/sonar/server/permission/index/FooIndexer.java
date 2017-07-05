@@ -20,6 +20,7 @@
 package org.sonar.server.permission.index;
 
 import com.google.common.collect.ImmutableMap;
+import org.sonar.db.DbSession;
 import org.sonar.server.component.index.ComponentIndexDefinition;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.EsClient;
@@ -69,5 +70,15 @@ public class FooIndexer implements ProjectIndexer, NeedAuthorizationIndexer {
       .setQuery(boolQuery()
         .filter(
           termQuery(ComponentIndexDefinition.FIELD_PROJECT_UUID, projectUuid))));
+  }
+
+  @Override
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+    // FIXME
+  }
+
+  @Override
+  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
+    // FIXME
   }
 }

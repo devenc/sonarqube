@@ -110,6 +110,16 @@ public class ComponentIndexer implements ProjectIndexer, NeedAuthorizationIndexe
           termQuery(ComponentIndexDefinition.FIELD_PROJECT_UUID, projectUuid))));
   }
 
+  @Override
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+    // FIXME
+  }
+
+  @Override
+  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
+    // FIXME
+  }
+
   public void delete(String projectUuid, Collection<String> disabledComponentUuids) {
     BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT.getIndex(), Size.REGULAR);
     bulk.start();

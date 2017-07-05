@@ -20,6 +20,7 @@
 package org.sonar.server.permission.index;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,15 +33,19 @@ import org.sonar.api.utils.DateUtils;
 import org.sonar.core.util.stream.MoreCollectors;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
+import org.sonar.db.es.EsQueueDto;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.BulkIndexer.Size;
 import org.sonar.server.es.EsClient;
 import org.sonar.server.es.IndexType;
+import org.sonar.server.es.IndexingResult;
 import org.sonar.server.es.ProjectIndexer;
+import org.sonar.server.es.ResilientIndexer;
 import org.sonar.server.es.StartupIndexer;
 import org.sonar.server.permission.index.PermissionIndexerDao.Dto;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.sonar.core.util.stream.MoreCollectors.toArrayList;
 import static org.sonar.core.util.stream.MoreCollectors.toSet;
 
 /**
@@ -50,7 +55,7 @@ import static org.sonar.core.util.stream.MoreCollectors.toSet;
  *   <li>delete project orphans from index</li>
  * </ul>
  */
-public class PermissionIndexer implements ProjectIndexer, StartupIndexer {
+public class PermissionIndexer implements ProjectIndexer, StartupIndexer, ResilientIndexer {
 
   @VisibleForTesting
   static final int MAX_BATCH_SIZE = 1000;
@@ -131,6 +136,20 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer {
       .get());
   }
 
+  @Override
+  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
+    ArrayList<EsQueueDto> esQueueDtos = authorizationScopes.stream()
+      .map(scope -> EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, projectUuid))
+      .collect(toArrayList());
+
+    dbClient.esQueueDao().insert(dbSession, esQueueDtos);
+  }
+
+  @Override
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+    // Nothing to do
+  }
+
   private Stream<AuthorizationScope> getScopes(Set<IndexType> indexTypes) {
     return authorizationScopes.stream()
       .filter(scope -> indexTypes.contains(scope.getIndexType()));
@@ -173,5 +192,18 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer {
     return new IndexRequest(indexType.getIndex(), indexType.getType(), dto.getProjectUuid())
       .routing(dto.getProjectUuid())
       .source(doc);
+  }
+
+  @Override
+  public IndexingResult index(DbSession dbSession, Collection<EsQueueDto> items) {
+    if (items.isEmpty()) {
+      return new IndexingResult();
+    }
+
+    IndexingResult indexingResult = new IndexingResult();
+
+
+
+    return indexingResult;
   }
 }
