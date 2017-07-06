@@ -142,7 +142,7 @@ public class UserIndexer implements StartupIndexer, ResilientIndexer {
   }
 
   private BulkIndexer newBulkIndexer(Size bulkSize, IndexingListener listener) {
-    return new BulkIndexer(esClient, UserIndexDefinition.INDEX_TYPE_USER.getIndex(), bulkSize, listener);
+    return new BulkIndexer(esClient, UserIndexDefinition.INDEX_TYPE_USER, bulkSize, listener);
   }
 
   private static IndexRequest newIndexRequest(UserDto user, ListMultimap<String, String> organizationUuidsByLogins) {

@@ -59,7 +59,7 @@ public class SetActionTest {
   private DbSession dbSession = db.getSession();
   private ComponentDto project;
 
-  private ResilientProjectIndexers indexer = new ResilientProjectIndexers(dbClient, emptyList());
+  private ResilientProjectIndexers indexer = new ResilientProjectIndexers(emptyList());
 
   private WsActionTester ws = new WsActionTester(new SetAction(dbClient, TestComponentFinder.from(db), userSession, indexer));
 

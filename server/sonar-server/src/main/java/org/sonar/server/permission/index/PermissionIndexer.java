@@ -40,19 +40,22 @@ import org.sonar.server.es.EsClient;
 import org.sonar.server.es.IndexType;
 import org.sonar.server.es.IndexingResult;
 import org.sonar.server.es.ProjectIndexer;
+import org.sonar.server.es.ResiliencyIndexingListener;
 import org.sonar.server.es.ResilientIndexer;
 import org.sonar.server.es.StartupIndexer;
 import org.sonar.server.permission.index.PermissionIndexerDao.Dto;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 import static org.sonar.core.util.stream.MoreCollectors.toArrayList;
+import static org.sonar.core.util.stream.MoreCollectors.toHashSet;
 import static org.sonar.core.util.stream.MoreCollectors.toSet;
 
 /**
  * Manages the synchronization of indexes with authorization settings defined in database:
  * <ul>
- *   <li>index the projects with recent permission changes</li>
- *   <li>delete project orphans from index</li>
+ * <li>index the projects with recent permission changes</li>
+ * <li>delete project orphans from index</li>
  * </ul>
  */
 public class PermissionIndexer implements ProjectIndexer, StartupIndexer, ResilientIndexer {
@@ -167,7 +170,7 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
   private void index(Collection<PermissionIndexerDao.Dto> authorizations, AuthorizationScope scope, Size bulkSize) {
     IndexType indexType = scope.getIndexType();
 
-    BulkIndexer bulkIndexer = new BulkIndexer(esClient, indexType.getIndex(), bulkSize);
+    BulkIndexer bulkIndexer = new BulkIndexer(esClient, indexType, bulkSize);
     bulkIndexer.start();
 
     authorizations.stream()
@@ -201,8 +204,39 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
     }
 
     IndexingResult indexingResult = new IndexingResult();
+    PermissionIndexerDao permissionIndexerDao = new PermissionIndexerDao();
+
+    Set<String> permissions = items
+      .stream()
+      .filter(i -> {
+        requireNonNull(i.getDocId(), () -> "BUG - " + i + " has not been persisted before indexing");
+        return i.getDocType() == EsQueueDto.Type.PERMISSION;
+      })
+      .map(EsQueueDto::getDocId)
+      .collect(toHashSet(items.size()));
+
+    ArrayList<BulkIndexer> bulkIndexers = authorizationScopes.stream()
+      .map(scope -> new BulkIndexer(esClient, scope.getIndexType(), Size.REGULAR, new ResiliencyIndexingListener(dbClient, dbSession, items)))
+      .collect(toArrayList());
+
+    bulkIndexers.forEach(BulkIndexer::start);
+
+    permissionIndexerDao.scrollByUuids(dbClient, dbSession, permissions,
+      // only index requests, no deletion requests.
+      // Deactivated users are not deleted but updated.
+      p -> {
+        permissions.remove(p.getProjectUuid());
+        bulkIndexers.forEach(b -> b.add(newIndexRequest(p, b.getIndexType())));
+      });
 
 
+    // the remaining logins reference rows that don't exist in db. They must
+    // be deleted from index.
+    permissions.forEach(permission ->
+      bulkIndexers.forEach(b ->
+        b.addDeletion(b.getIndexType(), permission)));
+
+    bulkIndexers.forEach(b -> indexingResult.add(b.stop()));
 
     return indexingResult;
   }

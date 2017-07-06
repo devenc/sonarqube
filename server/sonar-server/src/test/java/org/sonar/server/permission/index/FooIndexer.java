@@ -65,7 +65,7 @@ public class FooIndexer implements ProjectIndexer, NeedAuthorizationIndexer {
 
   @Override
   public void deleteProject(String projectUuid) {
-    BulkIndexer.delete(esClient, FOO_INDEX, esClient.prepareSearch(FOO_INDEX)
+    BulkIndexer.delete(esClient, INDEX_TYPE_FOO, esClient.prepareSearch(FOO_INDEX)
       .setTypes(FOO_TYPE)
       .setQuery(boolQuery()
         .filter(

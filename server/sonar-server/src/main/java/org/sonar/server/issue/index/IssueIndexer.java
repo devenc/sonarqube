@@ -126,7 +126,7 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
 
   @Override
   public void deleteProject(String uuid) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_ISSUE.getIndex(), Size.REGULAR);
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_ISSUE, Size.REGULAR);
     bulk.start();
     SearchRequestBuilder search = esClient.prepareSearch(INDEX_TYPE_ISSUE)
       .setRouting(uuid)
@@ -168,7 +168,7 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
   }
 
   private BulkIndexer createBulkIndexer(Size bulkSize) {
-    return new BulkIndexer(esClient, INDEX_TYPE_ISSUE.getIndex(), bulkSize);
+    return new BulkIndexer(esClient, INDEX_TYPE_ISSUE, bulkSize);
   }
 
   private static IndexRequest newIndexRequest(IssueDoc issue) {

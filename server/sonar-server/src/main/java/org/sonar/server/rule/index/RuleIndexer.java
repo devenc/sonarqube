@@ -225,7 +225,7 @@ public class RuleIndexer implements StartupIndexer, ResilientIndexer {
   }
 
   private BulkIndexer createBulkIndexer(Size bulkSize, IndexingListener listener) {
-    return new BulkIndexer(esClient, INDEX_TYPE_RULE.getIndex(), bulkSize, listener);
+    return new BulkIndexer(esClient, INDEX_TYPE_RULE, bulkSize, listener);
   }
 
   private static ListMultimap<EsQueueDto.Type, EsQueueDto> groupItemsByType(Collection<EsQueueDto> items) {

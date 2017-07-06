@@ -82,12 +82,12 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
   }
 
   public long index(Iterator<FileSourcesUpdaterHelper.Row> dbRows) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST.getIndex(), Size.REGULAR);
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST, Size.REGULAR);
     return doIndex(bulk, dbRows);
   }
 
   private long doIndex(@Nullable String projectUuid, Size bulkSize) {
-    final BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST.getIndex(), bulkSize);
+    final BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST, bulkSize);
 
     try (DbSession dbSession = dbClient.openSession(false)) {
       TestResultSetIterator rowIt = TestResultSetIterator.create(dbClient, dbSession, projectUuid);
@@ -112,7 +112,7 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
   public void deleteByFile(String fileUuid) {
     SearchRequestBuilder searchRequest = esClient.prepareSearch(INDEX_TYPE_TEST)
       .setQuery(QueryBuilders.termsQuery(FIELD_FILE_UUID, fileUuid));
-    BulkIndexer.delete(esClient, INDEX_TYPE_TEST.getIndex(), searchRequest);
+    BulkIndexer.delete(esClient, INDEX_TYPE_TEST, searchRequest);
   }
 
   @Override
@@ -120,7 +120,7 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
     SearchRequestBuilder searchRequest = esClient.prepareSearch(INDEX_TYPE_TEST)
       .setTypes(INDEX_TYPE_TEST.getType())
       .setQuery(QueryBuilders.termQuery(TestIndexDefinition.FIELD_PROJECT_UUID, projectUuid));
-    BulkIndexer.delete(esClient, INDEX_TYPE_TEST.getIndex(), searchRequest);
+    BulkIndexer.delete(esClient, INDEX_TYPE_TEST, searchRequest);
   }
 
   @Override

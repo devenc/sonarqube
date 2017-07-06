@@ -89,7 +89,7 @@ public class ComponentIndexer implements ProjectIndexer, NeedAuthorizationIndexe
    * <b>Warning:</b> only use {@code null} during startup.
    */
   private void doIndexByProjectUuid(@Nullable String projectUuid, Size bulkSize) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT.getIndex(), bulkSize);
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT, bulkSize);
 
     bulk.start();
     try (DbSession dbSession = dbClient.openSession(false)) {
@@ -104,7 +104,7 @@ public class ComponentIndexer implements ProjectIndexer, NeedAuthorizationIndexe
 
   @Override
   public void deleteProject(String projectUuid) {
-    BulkIndexer.delete(esClient, INDEX_TYPE_COMPONENT.getIndex(), esClient.prepareSearch(INDEX_TYPE_COMPONENT)
+    BulkIndexer.delete(esClient, INDEX_TYPE_COMPONENT, esClient.prepareSearch(INDEX_TYPE_COMPONENT)
       .setQuery(boolQuery()
         .filter(
           termQuery(ComponentIndexDefinition.FIELD_PROJECT_UUID, projectUuid))));
@@ -121,14 +121,14 @@ public class ComponentIndexer implements ProjectIndexer, NeedAuthorizationIndexe
   }
 
   public void delete(String projectUuid, Collection<String> disabledComponentUuids) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT.getIndex(), Size.REGULAR);
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT, Size.REGULAR);
     bulk.start();
     disabledComponentUuids.forEach(uuid -> bulk.addDeletion(INDEX_TYPE_COMPONENT, uuid, projectUuid));
     bulk.stop();
   }
 
   void index(ComponentDto... docs) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT.getIndex(), Size.REGULAR);
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT, Size.REGULAR);
     bulk.start();
     Arrays.stream(docs)
       .map(ComponentIndexer::toDocument)

@@ -181,7 +181,7 @@ public class ActiveRuleIndexer implements StartupIndexer, ResilientIndexer {
         // profile does not exist anymore in db --> related documents must be deleted from index rules/activeRule
         SearchRequestBuilder search = esClient.prepareSearch(INDEX_TYPE_ACTIVE_RULE)
           .setQuery(QueryBuilders.boolQuery().must(termQuery(FIELD_ACTIVE_RULE_PROFILE_UUID, ruleProfileUUid)));
-        profileResult = BulkIndexer.delete(esClient, INDEX_TYPE_ACTIVE_RULE.getIndex(), search);
+        profileResult = BulkIndexer.delete(esClient, INDEX_TYPE_ACTIVE_RULE, search);
 
       } else {
         BulkIndexer bulkIndexer = createBulkIndexer(Size.REGULAR, IndexingListener.noop());
@@ -205,7 +205,7 @@ public class ActiveRuleIndexer implements StartupIndexer, ResilientIndexer {
   }
 
   private BulkIndexer createBulkIndexer(Size size, IndexingListener listener) {
-    return new BulkIndexer(esClient, INDEX_TYPE_ACTIVE_RULE.getIndex(), size, listener);
+    return new BulkIndexer(esClient, INDEX_TYPE_ACTIVE_RULE, size, listener);
   }
 
   private static IndexRequest newIndexRequest(IndexedActiveRuleDto dto) {

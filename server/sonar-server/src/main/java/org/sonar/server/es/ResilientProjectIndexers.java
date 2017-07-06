@@ -21,16 +21,13 @@
 package org.sonar.server.es;
 
 import java.util.List;
-import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
 
 public class ResilientProjectIndexers {
 
-  private final DbClient dbClient;
   private final List<ProjectIndexer> indexers;
 
-  public ResilientProjectIndexers(DbClient dbClient, List<ProjectIndexer> indexers) {
-    this.dbClient = dbClient;
+  public ResilientProjectIndexers(List<ProjectIndexer> indexers) {
     this.indexers = indexers;
   }
 

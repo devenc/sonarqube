@@ -24,10 +24,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import org.apache.commons.lang.StringUtils;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
@@ -176,8 +178,12 @@ public class PermissionIndexerDao {
     return doSelectByProjects(dbClient, session, Collections.emptyList());
   }
 
-  List<Dto> selectByUuids(DbClient dbClient, DbSession session, List<String> projectOrViewUuids) {
+  List<Dto> selectByUuids(DbClient dbClient, DbSession session, Collection<String> projectOrViewUuids) {
     return executeLargeInputs(projectOrViewUuids, subProjectOrViewUuids -> doSelectByProjects(dbClient, session, subProjectOrViewUuids));
+  }
+
+  public void scrollByUuids(DbClient dbClient, DbSession dbSession, Collection<String> projectOrViewUuids, Consumer<Dto> consumer) {
+    selectByUuids(dbClient, dbSession, projectOrViewUuids).forEach(consumer::accept);
   }
 
   private static List<Dto> doSelectByProjects(DbClient dbClient, DbSession session, List<String> projectUuids) {

@@ -46,7 +46,7 @@ public class BulkIndexerTest {
 
   @Test
   public void index_nothing() {
-    BulkIndexer indexer = new BulkIndexer(esTester.client(), INDEX, Size.REGULAR);
+    BulkIndexer indexer = new BulkIndexer(esTester.client(), INDEX_TYPE_FAKE, Size.REGULAR);
     indexer.start();
     indexer.stop();
 
@@ -55,7 +55,7 @@ public class BulkIndexerTest {
 
   @Test
   public void index_documents() {
-    BulkIndexer indexer = new BulkIndexer(esTester.client(), INDEX, Size.REGULAR);
+    BulkIndexer indexer = new BulkIndexer(esTester.client(), INDEX_TYPE_FAKE, Size.REGULAR);
     indexer.start();
     indexer.add(newIndexRequest(42));
     indexer.add(newIndexRequest(78));
@@ -73,7 +73,7 @@ public class BulkIndexerTest {
     // index has one replica
     assertThat(replicas()).isEqualTo(1);
 
-    BulkIndexer indexer = new BulkIndexer(esTester.client(), INDEX, Size.LARGE);
+    BulkIndexer indexer = new BulkIndexer(esTester.client(), INDEX_TYPE_FAKE, Size.LARGE);
     indexer.start();
 
     // replicas are temporarily disabled
@@ -106,7 +106,7 @@ public class BulkIndexerTest {
 
     SearchRequestBuilder req = esTester.client().prepareSearch(INDEX_TYPE_FAKE)
       .setQuery(QueryBuilders.rangeQuery(FakeIndexDefinition.INT_FIELD).gte(removeFrom));
-    BulkIndexer.delete(esTester.client(), INDEX, req);
+    BulkIndexer.delete(esTester.client(), INDEX_TYPE_FAKE, req);
 
     assertThat(count()).isEqualTo(removeFrom);
   }

@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.math.RandomUtils;
 import org.sonar.api.Startable;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.config.Settings;
 import org.sonar.api.utils.System2;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -38,6 +39,7 @@ import org.sonar.core.util.stream.MoreCollectors;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
 import org.sonar.db.es.EsQueueDto;
+import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.qualityprofile.index.ActiveRuleIndexer;
 import org.sonar.server.rule.index.RuleIndexer;
 import org.sonar.server.user.index.UserIndexer;
@@ -68,17 +70,19 @@ public class RecoveryIndexer implements Startable {
   private final UserIndexer userIndexer;
   private final RuleIndexer ruleIndexer;
   private final ActiveRuleIndexer activeRuleIndexer;
+  private final PermissionIndexer permissionIndexer;
   private final long minAgeInMs;
   private final long loopLimit;
 
   public RecoveryIndexer(System2 system2, Configuration config, DbClient dbClient,
-    UserIndexer userIndexer, RuleIndexer ruleIndexer, ActiveRuleIndexer activeRuleIndexer) {
+      UserIndexer userIndexer, RuleIndexer ruleIndexer, ActiveRuleIndexer activeRuleIndexer, PermissionIndexer permissionIndexer) {
     this.system2 = system2;
     this.config = config;
     this.dbClient = dbClient;
     this.userIndexer = userIndexer;
     this.ruleIndexer = ruleIndexer;
     this.activeRuleIndexer = activeRuleIndexer;
+    this.permissionIndexer = permissionIndexer;
     this.minAgeInMs = getSetting(PROPERTY_MIN_AGE, DEFAULT_MIN_AGE_IN_MS);
     this.loopLimit = getSetting(PROPERTY_LOOP_LIMIT, DEFAULT_LOOP_LIMIT);
   }
@@ -150,6 +154,8 @@ public class RecoveryIndexer implements Startable {
         return ruleIndexer.index(dbSession, typeItems);
       case ACTIVE_RULE:
         return activeRuleIndexer.index(dbSession, typeItems);
+      case PERMISSION:
+        return permissionIndexer.index(dbSession, typeItems);
       default:
         LOGGER.error(LOG_PREFIX + "ignore {} documents with unsupported type {}", typeItems.size(), type);
         return new IndexingResult();
