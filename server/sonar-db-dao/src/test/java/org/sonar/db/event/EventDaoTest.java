@@ -33,6 +33,7 @@ import org.sonar.db.component.ComponentTesting;
 import org.sonar.db.component.SnapshotDto;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.sonar.db.component.SnapshotTesting.newAnalysis;
 import static org.sonar.db.event.EventTesting.newEvent;
@@ -42,19 +43,19 @@ public class EventDaoTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Rule
-  public DbTester dbTester = DbTester.create(System2.INSTANCE);
+  public DbTester db = DbTester.create(System2.INSTANCE);
 
-  private DbClient dbClient = dbTester.getDbClient();
-  private DbSession dbSession = dbTester.getSession();
+  private DbClient dbClient = db.getDbClient();
+  private DbSession dbSession = db.getSession();
 
-  private EventDao underTest = dbTester.getDbClient().eventDao();
+  private EventDao underTest = db.getDbClient().eventDao();
 
   @Test
   public void select_by_uuid() {
-    SnapshotDto analysis = dbTester.components().insertProjectAndSnapshot(ComponentTesting.newPrivateProjectDto(dbTester.organizations().insert()));
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("A1"));
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("A2"));
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("A3"));
+    SnapshotDto analysis = db.components().insertProjectAndSnapshot(ComponentTesting.newPrivateProjectDto(db.organizations().insert()));
+    db.events().insertEvent(newEvent(analysis).setUuid("A1"));
+    db.events().insertEvent(newEvent(analysis).setUuid("A2"));
+    db.events().insertEvent(newEvent(analysis).setUuid("A3"));
 
     Optional<EventDto> result = underTest.selectByUuid(dbSession, "A2");
 
@@ -64,12 +65,12 @@ public class EventDaoTest {
 
   @Test
   public void select_by_component_uuid() {
-    dbTester.prepareDbUnit(getClass(), "shared.xml");
+    db.prepareDbUnit(getClass(), "shared.xml");
 
-    List<EventDto> dtos = underTest.selectByComponentUuid(dbTester.getSession(), "ABCD");
+    List<EventDto> dtos = underTest.selectByComponentUuid(db.getSession(), "ABCD");
     assertThat(dtos).hasSize(3);
 
-    dtos = underTest.selectByComponentUuid(dbTester.getSession(), "BCDE");
+    dtos = underTest.selectByComponentUuid(db.getSession(), "BCDE");
     assertThat(dtos).hasSize(1);
 
     EventDto dto = dtos.get(0);
@@ -87,16 +88,16 @@ public class EventDaoTest {
 
   @Test
   public void select_by_analysis_uuid() {
-    ComponentDto project = ComponentTesting.newPrivateProjectDto(dbTester.getDefaultOrganization());
-    SnapshotDto analysis = dbTester.components().insertProjectAndSnapshot(project);
+    ComponentDto project = ComponentTesting.newPrivateProjectDto(db.getDefaultOrganization());
+    SnapshotDto analysis = db.components().insertProjectAndSnapshot(project);
     SnapshotDto otherAnalysis = dbClient.snapshotDao().insert(dbSession, newAnalysis(project));
-    dbTester.commit();
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("A1"));
-    dbTester.events().insertEvent(newEvent(otherAnalysis).setUuid("O1"));
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("A2"));
-    dbTester.events().insertEvent(newEvent(otherAnalysis).setUuid("O2"));
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("A3"));
-    dbTester.events().insertEvent(newEvent(otherAnalysis).setUuid("O3"));
+    db.commit();
+    db.events().insertEvent(newEvent(analysis).setUuid("A1"));
+    db.events().insertEvent(newEvent(otherAnalysis).setUuid("O1"));
+    db.events().insertEvent(newEvent(analysis).setUuid("A2"));
+    db.events().insertEvent(newEvent(otherAnalysis).setUuid("O2"));
+    db.events().insertEvent(newEvent(analysis).setUuid("A3"));
+    db.events().insertEvent(newEvent(otherAnalysis).setUuid("O3"));
 
     List<EventDto> result = underTest.selectByAnalysisUuid(dbSession, analysis.getUuid());
 
@@ -106,20 +107,20 @@ public class EventDaoTest {
 
   @Test
   public void select_by_analysis_uuids() {
-    ComponentDto project = dbTester.components().insertPrivateProject();
-    SnapshotDto a1 = dbTester.components().insertSnapshot(newAnalysis(project));
-    SnapshotDto a2 = dbTester.components().insertSnapshot(newAnalysis(project));
-    SnapshotDto a42 = dbTester.components().insertSnapshot(newAnalysis(project));
-    dbTester.events().insertEvent(newEvent(newAnalysis(project)));
-    dbTester.events().insertEvent(newEvent(a1).setUuid("A11"));
-    dbTester.events().insertEvent(newEvent(a1).setUuid("A12"));
-    dbTester.events().insertEvent(newEvent(a1).setUuid("A13"));
-    dbTester.events().insertEvent(newEvent(a2).setUuid("A21"));
-    dbTester.events().insertEvent(newEvent(a2).setUuid("A22"));
-    dbTester.events().insertEvent(newEvent(a2).setUuid("A23"));
-    dbTester.events().insertEvent(newEvent(a42).setUuid("AO1"));
-    dbTester.events().insertEvent(newEvent(a42).setUuid("AO2"));
-    dbTester.events().insertEvent(newEvent(a42).setUuid("AO3"));
+    ComponentDto project = db.components().insertPrivateProject();
+    SnapshotDto a1 = db.components().insertSnapshot(newAnalysis(project));
+    SnapshotDto a2 = db.components().insertSnapshot(newAnalysis(project));
+    SnapshotDto a42 = db.components().insertSnapshot(newAnalysis(project));
+    db.events().insertEvent(newEvent(newAnalysis(project)));
+    db.events().insertEvent(newEvent(a1).setUuid("A11"));
+    db.events().insertEvent(newEvent(a1).setUuid("A12"));
+    db.events().insertEvent(newEvent(a1).setUuid("A13"));
+    db.events().insertEvent(newEvent(a2).setUuid("A21"));
+    db.events().insertEvent(newEvent(a2).setUuid("A22"));
+    db.events().insertEvent(newEvent(a2).setUuid("A23"));
+    db.events().insertEvent(newEvent(a42).setUuid("AO1"));
+    db.events().insertEvent(newEvent(a42).setUuid("AO2"));
+    db.events().insertEvent(newEvent(a42).setUuid("AO3"));
 
     List<EventDto> result = underTest.selectByAnalysisUuids(dbSession, newArrayList(a1.getUuid(), a2.getUuid()));
 
@@ -128,18 +129,57 @@ public class EventDaoTest {
   }
 
   @Test
-  public void return_different_categories() {
-    dbTester.prepareDbUnit(getClass(), "shared.xml");
+  public void selectByQuery_filters_by_component_uuid() {
+    ComponentDto project1 = db.components().insertPrivateProject();
+    ComponentDto project2 = db.components().insertPrivateProject();
+    ComponentDto project3 = db.components().insertPrivateProject();
+    SnapshotDto a1 = db.components().insertSnapshot(newAnalysis(project1));
+    SnapshotDto a2 = db.components().insertSnapshot(newAnalysis(project2));
+    SnapshotDto a3 = db.components().insertSnapshot(newAnalysis(project3));
+    EventDto e1 = db.events().insertEvent(newEvent(a1));
+    EventDto e2 = db.events().insertEvent(newEvent(a2));
+    EventDto e3 = db.events().insertEvent(newEvent(a3));
+    EventQuery dbQuery = EventQuery.builder().setComponentUuids(newArrayList(project1.uuid(), project2.uuid())).setFrom(0).build();
 
-    List<EventDto> dtos = underTest.selectByComponentUuid(dbTester.getSession(), "ABCD");
+    List<EventDto> result = underTest.selectByQuery(db.getSession(), dbQuery);
+
+    assertThat(result)
+      .extracting(EventDto::getUuid)
+      .containsExactlyInAnyOrder(e1.getUuid(), e2.getUuid());
+  }
+
+  @Test
+  public void selectByQuery_filters_by_event_date() {
+    ComponentDto project = db.components().insertPrivateProject();
+    long from = 1_000_000_000L;
+    SnapshotDto a1 = db.components().insertSnapshot(newAnalysis(project));
+    SnapshotDto a2 = db.components().insertSnapshot(newAnalysis(project));
+    SnapshotDto a3 = db.components().insertSnapshot(newAnalysis(project));
+    EventDto e1 = db.events().insertEvent(newEvent(a1).setDate(from - 1L));
+    EventDto e2 = db.events().insertEvent(newEvent(a2).setDate(from));
+    EventDto e3 = db.events().insertEvent(newEvent(a3).setDate(from + 1L));
+    EventQuery dbQuery = EventQuery.builder().setComponentUuids(singletonList(project.uuid())).setFrom(from).build();
+
+    List<EventDto> result = underTest.selectByQuery(db.getSession(), dbQuery);
+
+    assertThat(result)
+      .extracting(EventDto::getUuid)
+      .containsExactlyInAnyOrder(e2.getUuid(), e3.getUuid());
+  }
+
+  @Test
+  public void return_different_categories() {
+    db.prepareDbUnit(getClass(), "shared.xml");
+
+    List<EventDto> dtos = underTest.selectByComponentUuid(db.getSession(), "ABCD");
     assertThat(dtos).extracting("category").containsOnly(EventDto.CATEGORY_ALERT, EventDto.CATEGORY_PROFILE, EventDto.CATEGORY_VERSION);
   }
 
   @Test
   public void insert() {
-    dbTester.prepareDbUnit(getClass(), "empty.xml");
+    db.prepareDbUnit(getClass(), "empty.xml");
 
-    underTest.insert(dbTester.getSession(), new EventDto()
+    underTest.insert(db.getSession(), new EventDto()
       .setUuid("E1")
       .setAnalysisUuid("uuid_1")
       .setComponentUuid("ABCD")
@@ -149,15 +189,15 @@ public class EventDaoTest {
       .setData("some data")
       .setDate(1413407091086L)
       .setCreatedAt(1225630680000L));
-    dbTester.getSession().commit();
+    db.getSession().commit();
 
-    dbTester.assertDbUnit(getClass(), "insert-result.xml", new String[] {"id"}, "events");
+    db.assertDbUnit(getClass(), "insert-result.xml", new String[] {"id"}, "events");
   }
 
   @Test
   public void update_name_and_description() {
-    SnapshotDto analysis = dbTester.components().insertProjectAndSnapshot(ComponentTesting.newPrivateProjectDto(dbTester.organizations().insert()));
-    dbTester.events().insertEvent(newEvent(analysis).setUuid("E1"));
+    SnapshotDto analysis = db.components().insertProjectAndSnapshot(ComponentTesting.newPrivateProjectDto(db.organizations().insert()));
+    db.events().insertEvent(newEvent(analysis).setUuid("E1"));
 
     underTest.update(dbSession, "E1", "New Name", "New Description");
 
@@ -168,22 +208,22 @@ public class EventDaoTest {
 
   @Test
   public void delete_by_id() {
-    dbTester.prepareDbUnit(getClass(), "delete.xml");
+    db.prepareDbUnit(getClass(), "delete.xml");
 
-    underTest.delete(dbTester.getSession(), 1L);
-    dbTester.getSession().commit();
+    underTest.delete(db.getSession(), 1L);
+    db.getSession().commit();
 
-    assertThat(dbTester.countRowsOfTable("events")).isEqualTo(0);
+    assertThat(db.countRowsOfTable("events")).isEqualTo(0);
   }
 
   @Test
   public void delete_by_uuid() {
-    dbTester.events().insertEvent(newEvent(newAnalysis(ComponentTesting.newPrivateProjectDto(dbTester.getDefaultOrganization()))).setUuid("E1"));
+    db.events().insertEvent(newEvent(newAnalysis(ComponentTesting.newPrivateProjectDto(db.getDefaultOrganization()))).setUuid("E1"));
 
-    underTest.delete(dbTester.getSession(), "E1");
-    dbTester.commit();
+    underTest.delete(db.getSession(), "E1");
+    db.commit();
 
-    assertThat(dbTester.countRowsOfTable("events")).isEqualTo(0);
+    assertThat(db.countRowsOfTable("events")).isEqualTo(0);
   }
 
 }

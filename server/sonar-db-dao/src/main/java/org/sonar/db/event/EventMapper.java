@@ -40,4 +40,6 @@ public interface EventMapper {
   void deleteById(long id);
 
   void deleteByUuid(String uuid);
+
+  List<EventDto> selectByQuery(@Param("componentUuids") List<String> componentUuids, @Param("from") long from);
 }
