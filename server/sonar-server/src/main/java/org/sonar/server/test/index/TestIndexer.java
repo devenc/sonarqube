@@ -19,7 +19,9 @@
  */
 package org.sonar.server.test.index;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -27,11 +29,16 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
+import org.sonar.db.es.EsQueueDto;
 import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.BulkIndexer.Size;
 import org.sonar.server.es.EsClient;
 import org.sonar.server.es.IndexType;
+import org.sonar.server.es.IndexingListener;
+import org.sonar.server.es.IndexingResult;
 import org.sonar.server.es.ProjectIndexer;
+import org.sonar.server.es.ResiliencyIndexingListener;
+import org.sonar.server.es.ResilientIndexer;
 import org.sonar.server.es.StartupIndexer;
 import org.sonar.server.source.index.FileSourcesUpdaterHelper;
 
@@ -42,7 +49,7 @@ import static org.sonar.server.test.index.TestIndexDefinition.INDEX_TYPE_TEST;
  * Add to Elasticsearch index {@link TestIndexDefinition} the rows of
  * db table FILE_SOURCES of type TEST that are not indexed yet
  */
-public class TestIndexer implements ProjectIndexer, StartupIndexer {
+public class TestIndexer implements ProjectIndexer, StartupIndexer, ResilientIndexer {
 
   private final DbClient dbClient;
   private final EsClient esClient;
@@ -63,7 +70,7 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
         break;
       case NEW_ANALYSIS:
         deleteProject(projectUuid);
-        doIndex(projectUuid, Size.REGULAR);
+        doIndex(projectUuid, Size.REGULAR, IndexingListener.noop());
         break;
       default:
         // defensive case
@@ -78,35 +85,27 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
 
   @Override
   public void indexOnStartup(Set<IndexType> uninitializedIndexTypes) {
-    doIndex(null, Size.LARGE);
+    doIndex((String) null, Size.LARGE, IndexingListener.noop());
   }
 
-  public long index(Iterator<FileSourcesUpdaterHelper.Row> dbRows) {
-    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST, Size.REGULAR);
-    return doIndex(bulk, dbRows);
-  }
-
-  private long doIndex(@Nullable String projectUuid, Size bulkSize) {
-    final BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST, bulkSize);
-
+  private IndexingResult doIndex(@Nullable String projectUuid, Size bulkSize, IndexingListener listener) {
     try (DbSession dbSession = dbClient.openSession(false)) {
       TestResultSetIterator rowIt = TestResultSetIterator.create(dbClient, dbSession, projectUuid);
-      long maxUpdatedAt = doIndex(bulk, rowIt);
+      IndexingResult indexingResult = doIndex(rowIt, bulkSize, listener);
       rowIt.close();
-      return maxUpdatedAt;
+      return indexingResult;
     }
   }
 
-  private static long doIndex(BulkIndexer bulk, Iterator<FileSourcesUpdaterHelper.Row> dbRows) {
-    long maxUpdatedAt = 0L;
+  @VisibleForTesting
+  protected IndexingResult doIndex(Iterator<FileSourcesUpdaterHelper.Row> dbRows, Size bulkSize, IndexingListener listener) {
+    BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_TEST, bulkSize, listener);
     bulk.start();
     while (dbRows.hasNext()) {
       FileSourcesUpdaterHelper.Row row = dbRows.next();
       row.getUpdateRequests().forEach(bulk::add);
-      maxUpdatedAt = Math.max(maxUpdatedAt, row.getUpdatedAt());
     }
-    bulk.stop();
-    return maxUpdatedAt;
+    return bulk.stop();
   }
 
   public void deleteByFile(String fileUuid) {
@@ -125,11 +124,27 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer {
 
   @Override
   public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
-    // FIXME
+    dbClient.esQueueDao().insert(dbSession, EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, null));
   }
 
   @Override
   public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
-    // FIXME
+    dbClient.esQueueDao().insert(dbSession, EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, null));
+  }
+
+  @Override
+  public IndexingResult index(DbSession dbSession, Collection<EsQueueDto> items) {
+    if (items.isEmpty()) {
+      return new IndexingResult();
+    }
+
+    IndexingResult indexingResult = new IndexingResult();
+
+    items.forEach(i -> {
+      deleteProject(i.getDocId());
+      indexingResult.add(doIndex(i.getDocId(), Size.REGULAR, new ResiliencyIndexingListener(dbClient, dbSession, items)));
+    });
+
+    return indexingResult;
   }
 }

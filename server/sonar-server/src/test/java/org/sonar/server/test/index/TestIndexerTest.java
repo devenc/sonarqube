@@ -36,7 +36,9 @@ import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.System2;
 import org.sonar.db.DbTester;
 import org.sonar.db.protobuf.DbFileSources;
+import org.sonar.server.es.BulkIndexer;
 import org.sonar.server.es.EsTester;
+import org.sonar.server.es.IndexingListener;
 import org.sonar.server.es.ProjectIndexer;
 import org.sonar.server.source.index.FileSourcesUpdaterHelper;
 import org.sonar.server.test.db.TestTesting;
@@ -127,7 +129,7 @@ public class TestIndexerTest {
         .setExecutionTimeMs(123_456L)
         .addCoveredFile(DbFileSources.Test.CoveredFile.newBuilder().setFileUuid("MAIN_UUID_1").addCoveredLine(42))
         .build()));
-    underTest.index(Iterators.singletonIterator(dbRow));
+    underTest.doIndex(Iterators.singletonIterator(dbRow), BulkIndexer.Size.REGULAR, IndexingListener.noop());
 
     assertThat(countDocuments()).isEqualTo(2L);
 

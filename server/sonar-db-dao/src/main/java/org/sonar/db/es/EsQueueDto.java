@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 public final class EsQueueDto {
 
   public enum Type {
-    USER, RULE, RULE_EXTENSION, ACTIVE_RULE, PERMISSION
+    USER, RULE, RULE_EXTENSION, ACTIVE_RULE, PERMISSION, TEST
   }
 
   private String uuid;
