@@ -62,6 +62,7 @@
       <foreach collection="componentUuids" open="(" close=")" item="componentUuid" separator=" or ">
         e.component_uuid = #{componentUuid}
       </foreach>
+    order by e.event_date
   </select>
 
   <insert id="insert" parameterType="Event" keyColumn="id" useGeneratedKeys="true" keyProperty="id">

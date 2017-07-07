@@ -149,9 +149,9 @@ public class EventDaoTest {
   }
 
   @Test
-  public void selectByQuery_filters_by_event_date() {
+  public void selectByQuery_filters_by_functional_date() {
     ComponentDto project = db.components().insertPrivateProject();
-    long from = 1_000_000_000L;
+    long from = 1_500_000_000_000L;
     SnapshotDto a1 = db.components().insertSnapshot(newAnalysis(project));
     SnapshotDto a2 = db.components().insertSnapshot(newAnalysis(project));
     SnapshotDto a3 = db.components().insertSnapshot(newAnalysis(project));
@@ -165,6 +165,25 @@ public class EventDaoTest {
     assertThat(result)
       .extracting(EventDto::getUuid)
       .containsExactlyInAnyOrder(e2.getUuid(), e3.getUuid());
+  }
+
+  @Test
+  public void selectByQuery_order_by_functional_date_ascending() {
+    ComponentDto project = db.components().insertPrivateProject();
+    long from = 1_500_000_000_000L;
+    SnapshotDto a1 = db.components().insertSnapshot(newAnalysis(project));
+    SnapshotDto a2 = db.components().insertSnapshot(newAnalysis(project));
+    SnapshotDto a3 = db.components().insertSnapshot(newAnalysis(project));
+    EventDto e1 = db.events().insertEvent(newEvent(a1).setDate(from - 1L));
+    EventDto e3 = db.events().insertEvent(newEvent(a3).setDate(from + 1L));
+    EventDto e2 = db.events().insertEvent(newEvent(a2).setDate(from));
+    EventQuery dbQuery = EventQuery.builder().setComponentUuids(singletonList(project.uuid())).setFrom(from - 1L).build();
+
+    List<EventDto> result = underTest.selectByQuery(db.getSession(), dbQuery);
+
+    assertThat(result)
+      .extracting(EventDto::getUuid)
+      .containsExactly(e1.getUuid(), e2.getUuid(), e3.getUuid());
   }
 
   @Test
