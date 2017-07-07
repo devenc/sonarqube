@@ -100,10 +100,12 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
     }
   }
 
-  public void indexProjectsByUuids(DbSession dbSession, List<String> viewOrProjectUuids) {
+  public void commitAndIndex(DbSession dbSession, List<String> viewOrProjectUuids) {
     checkArgument(!viewOrProjectUuids.isEmpty(), "viewOrProjectUuids cannot be empty");
     PermissionIndexerDao dao = new PermissionIndexerDao();
     List<Dto> authorizations = dao.selectByUuids(dbClient, dbSession, viewOrProjectUuids);
+    authorizations.forEach(a -> createEsQueueForIndexing(dbSession, a.getProjectUuid()));
+    dbSession.commit();
     index(authorizations);
   }
 
@@ -149,8 +151,12 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
   }
 
   @Override
-  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
-    // Nothing to do
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
+    ArrayList<EsQueueDto> esQueueDtos = authorizationScopes.stream()
+      .map(scope -> EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, projectUuid))
+      .collect(toArrayList());
+
+    dbClient.esQueueDao().insert(dbSession, esQueueDtos);
   }
 
   private Stream<AuthorizationScope> getScopes(Set<IndexType> indexTypes) {

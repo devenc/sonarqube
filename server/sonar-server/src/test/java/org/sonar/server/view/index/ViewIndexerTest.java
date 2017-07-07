@@ -133,7 +133,7 @@ public class ViewIndexerTest {
     dbClient.ruleDao().insert(dbSession, rule.getDefinition());
     ComponentDto project1 = addProjectWithIssue(rule, dbTester.organizations().insert());
     issueIndexer.indexOnStartup(issueIndexer.getIndexTypes());
-    permissionIndexer.indexProjectsByUuids(dbSession, asList(project1.uuid()));
+    permissionIndexer.commitAndIndex(dbSession, asList(project1.uuid()));
 
     OrganizationDto organizationDto = dbTester.organizations().insert();
     ComponentDto view = ComponentTesting.newView(organizationDto, "ABCD");
@@ -151,7 +151,7 @@ public class ViewIndexerTest {
     // Add a project to the view and index it again
     ComponentDto project2 = addProjectWithIssue(rule, organizationDto);
     issueIndexer.indexOnStartup(issueIndexer.getIndexTypes());
-    permissionIndexer.indexProjectsByUuids(dbSession, asList(project2.uuid()));
+    permissionIndexer.commitAndIndex(dbSession, asList(project2.uuid()));
 
     ComponentDto techProject2 = ComponentTesting.newProjectCopy("EFGH", project2, view);
     dbClient.componentDao().insert(dbSession, techProject2);

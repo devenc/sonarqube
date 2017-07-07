@@ -45,12 +45,14 @@ import org.sonar.db.permission.UserPermissionDto;
 import org.sonar.db.user.GroupDto;
 import org.sonar.db.user.UserDto;
 import org.sonar.server.component.TestComponentFinder;
+import org.sonar.server.es.EsTester;
 import org.sonar.server.exceptions.BadRequestException;
 import org.sonar.server.exceptions.ForbiddenException;
 import org.sonar.server.exceptions.NotFoundException;
 import org.sonar.server.exceptions.UnauthorizedException;
 import org.sonar.server.organization.BillingValidations;
 import org.sonar.server.organization.BillingValidationsProxy;
+import org.sonar.server.permission.index.FooIndexDefinition;
 import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.tester.UserSessionRule;
 import org.sonar.server.ws.TestRequest;
@@ -64,6 +66,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.sonar.db.organization.OrganizationTesting.newOrganizationDto;
@@ -81,6 +84,8 @@ public class UpdateVisibilityActionTest {
   @Rule
   public DbTester dbTester = DbTester.create(System2.INSTANCE);
   @Rule
+  public EsTester esTester = new EsTester(new FooIndexDefinition());
+  @Rule
   public UserSessionRule userSessionRule = UserSessionRule.standalone()
     .logIn();
   @Rule
@@ -88,7 +93,7 @@ public class UpdateVisibilityActionTest {
 
   private DbClient dbClient = dbTester.getDbClient();
   private DbSession dbSession = dbTester.getSession();
-  private PermissionIndexer permissionIndexer = mock(PermissionIndexer.class);
+  private PermissionIndexer permissionIndexer = spy(new PermissionIndexer(dbClient, esTester.client(), Collections.emptyList()));
   private BillingValidationsProxy billingValidations = mock(BillingValidationsProxy.class);
 
   private UpdateVisibilityAction underTest = new UpdateVisibilityAction(dbClient, TestComponentFinder.from(dbTester), userSessionRule, permissionIndexer,
@@ -444,7 +449,7 @@ public class UpdateVisibilityActionTest {
       .setParam(PARAM_VISIBILITY, initiallyPrivate ? PUBLIC : PRIVATE)
       .execute();
 
-    verify(permissionIndexer).indexProjectsByUuids(any(DbSession.class), eq(Collections.singletonList(project.uuid())));
+    verify(permissionIndexer).commitAndIndex(any(DbSession.class), eq(Collections.singletonList(project.uuid())));
   }
 
   @Test

@@ -19,6 +19,7 @@
  */
 package org.sonar.server.permission.ws.template;
 
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +40,6 @@ import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.permission.ws.BasePermissionWsTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.sonar.db.component.ComponentTesting.newView;
 import static org.sonarqube.ws.client.permission.PermissionsWsParameters.PARAM_ORGANIZATION;
 import static org.sonarqube.ws.client.permission.PermissionsWsParameters.PARAM_QUALIFIER;
@@ -58,7 +58,7 @@ public class BulkApplyTemplateActionTest extends BasePermissionWsTest<BulkApplyT
   private OrganizationDto organization;
   private PermissionTemplateDto template1;
   private PermissionTemplateDto template2;
-  private PermissionIndexer issuePermissionIndexer = mock(PermissionIndexer.class);
+  private PermissionIndexer issuePermissionIndexer = new PermissionIndexer(db.getDbClient(), esTester.client(), Collections.emptyList());
 
   @Override
   protected BulkApplyTemplateAction buildWsAction() {

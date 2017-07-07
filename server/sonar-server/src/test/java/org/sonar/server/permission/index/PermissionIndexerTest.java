@@ -74,17 +74,6 @@ public class PermissionIndexerTest {
   }
 
   @Test
-  public void no_esqueue_is_created_on_indexing() {
-    ComponentDto project1 = createUnindexedPublicProject();
-
-    for (ProjectIndexer.Cause cause : ProjectIndexer.Cause.values()) {
-      underTest.createEsQueueForIndexing(dbTester.getSession(), project1.uuid(), ProjectIndexer.Cause.PROJECT_CREATION);
-    }
-
-    assertThat(dbTester.countRowsOfTable(dbTester.getSession(), "es_queue")).isEqualTo(0);
-  }
-
-  @Test
   public void deletion_resilience_will_deindex_projects() {
     ComponentDto project1 = createUnindexedPublicProject();
     ComponentDto project2 = createUnindexedPublicProject();

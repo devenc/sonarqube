@@ -573,7 +573,7 @@ public class SearchActionComponentsMediumTest {
   }
 
   private void indexPermissionsOf(ComponentDto... rootComponents) {
-    tester.get(PermissionIndexer.class).indexProjectsByUuids(session, Arrays.stream(rootComponents).map(ComponentDto::uuid).collect(Collectors.toList()));
+    tester.get(PermissionIndexer.class).commitAndIndex(session, Arrays.stream(rootComponents).map(ComponentDto::uuid).collect(Collectors.toList()));
   }
 
   private IssueDto insertIssue(IssueDto issue) {

@@ -45,7 +45,7 @@ public class ResilientProjectIndexersTest {
 
       underTest.commitAndIndex(mockedDbSession, projectUuid, cause);
 
-      indexers.forEach(i -> verify(i).createEsQueueForIndexing(eq(mockedDbSession), eq(projectUuid), eq(cause)));
+      indexers.forEach(i -> verify(i).createEsQueueForIndexing(eq(mockedDbSession), eq(projectUuid)));
       verify(mockedDbSession).commit();
       indexers.forEach(i -> verify(i).indexProject(eq(projectUuid), eq(cause)));
     }

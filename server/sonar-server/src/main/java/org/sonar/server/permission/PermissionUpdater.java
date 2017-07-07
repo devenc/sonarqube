@@ -63,10 +63,11 @@ public class PermissionUpdater {
     for (Long projectId : projectIds) {
       dbClient.resourceDao().updateAuthorizationDate(projectId, dbSession);
     }
-    dbSession.commit();
 
     if (!projectIds.isEmpty()) {
-      permissionIndexer.indexProjectsByUuids(dbSession, projectOrViewUuids);
+      permissionIndexer.commitAndIndex(dbSession, projectOrViewUuids);
+    } else {
+      dbSession.commit();
     }
   }
 

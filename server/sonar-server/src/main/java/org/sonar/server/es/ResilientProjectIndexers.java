@@ -32,7 +32,7 @@ public class ResilientProjectIndexers {
   }
 
   public void commitAndIndex(DbSession dbSession, String projectUuid, ProjectIndexer.Cause cause) {
-    indexers.forEach(i -> i.createEsQueueForIndexing(dbSession, projectUuid, cause));
+    indexers.forEach(i -> i.createEsQueueForIndexing(dbSession, projectUuid));
     dbSession.commit();
     indexers.forEach(i -> i.indexProject(projectUuid, cause));
   }

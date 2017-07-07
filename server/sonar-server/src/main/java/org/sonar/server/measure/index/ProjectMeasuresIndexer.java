@@ -95,7 +95,7 @@ public class ProjectMeasuresIndexer implements ProjectIndexer, NeedAuthorization
   }
 
   @Override
-  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
     // FIXME
   }
 

@@ -152,7 +152,7 @@ public class IssueServiceMediumTest {
     tester.get(ComponentDao.class).insert(session, project);
     session.commit();
 
-    tester.get(PermissionIndexer.class).indexProjectsByUuids(session, singletonList(project.uuid()));
+    tester.get(PermissionIndexer.class).commitAndIndex(session, singletonList(project.uuid()));
     userSessionRule.logIn();
 
     return project;

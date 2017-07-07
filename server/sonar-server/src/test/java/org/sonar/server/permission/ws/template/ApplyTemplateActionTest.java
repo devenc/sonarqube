@@ -19,6 +19,7 @@
  */
 package org.sonar.server.permission.ws.template;
 
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.junit.Before;
@@ -40,7 +41,6 @@ import org.sonar.server.ws.TestRequest;
 import org.sonar.server.ws.TestResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.sonar.db.permission.OrganizationPermission.ADMINISTER;
 import static org.sonarqube.ws.client.permission.PermissionsWsParameters.PARAM_PROJECT_ID;
 import static org.sonarqube.ws.client.permission.PermissionsWsParameters.PARAM_PROJECT_KEY;
@@ -60,7 +60,7 @@ public class ApplyTemplateActionTest extends BasePermissionWsTest<ApplyTemplateA
   private PermissionTemplateDto template2;
 
   private PermissionTemplateService permissionTemplateService = new PermissionTemplateService(db.getDbClient(),
-    mock(PermissionIndexer.class), userSession, defaultTemplatesResolver);
+     new PermissionIndexer(db.getDbClient(), esTester.client(), Collections.emptyList()), userSession, defaultTemplatesResolver);
 
   @Override
   protected ApplyTemplateAction buildWsAction() {

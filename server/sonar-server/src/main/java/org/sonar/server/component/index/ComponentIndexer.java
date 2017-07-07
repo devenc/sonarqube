@@ -111,7 +111,7 @@ public class ComponentIndexer implements ProjectIndexer, NeedAuthorizationIndexe
   }
 
   @Override
-  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
     // FIXME
   }
 

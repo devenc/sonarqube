@@ -103,7 +103,6 @@ public class PermissionTemplateService {
     for (ComponentDto project : projects) {
       copyPermissions(dbSession, template, project, null);
     }
-    dbSession.commit();
     indexProjectPermissions(dbSession, projects.stream().map(ComponentDto::uuid).collect(MoreCollectors.toList()));
   }
 
@@ -116,7 +115,6 @@ public class PermissionTemplateService {
     PermissionTemplateDto template = findTemplate(dbSession, organizationUuid, component);
     checkArgument(template != null, "Cannot retrieve default permission template");
     copyPermissions(dbSession, template, component, projectCreatorUserId);
-    dbSession.commit();
     indexProjectPermissions(dbSession, asList(component.uuid()));
   }
 
@@ -131,7 +129,7 @@ public class PermissionTemplateService {
   }
 
   private void indexProjectPermissions(DbSession dbSession, List<String> projectOrViewUuids) {
-    permissionIndexer.indexProjectsByUuids(dbSession, projectOrViewUuids);
+    permissionIndexer.commitAndIndex(dbSession, projectOrViewUuids);
   }
 
   private void copyPermissions(DbSession dbSession, PermissionTemplateDto template, ComponentDto project, @Nullable Integer projectCreatorUserId) {

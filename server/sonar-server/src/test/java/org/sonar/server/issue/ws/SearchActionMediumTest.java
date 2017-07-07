@@ -687,7 +687,7 @@ public class SearchActionMediumTest {
   }
 
   private void indexPermissionsOf(ComponentDto project) {
-    tester.get(PermissionIndexer.class).indexProjectsByUuids(session, singletonList(project.uuid()));
+    tester.get(PermissionIndexer.class).commitAndIndex(session, singletonList(project.uuid()));
   }
 
   private void grantPermissionToAnyone(ComponentDto project, String permission) {

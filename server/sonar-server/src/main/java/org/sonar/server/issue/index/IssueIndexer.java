@@ -136,7 +136,7 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
   }
 
   @Override
-  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid, Cause cause) {
+  public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
     // FIXME
   }
 
