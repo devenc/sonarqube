@@ -234,7 +234,7 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
     // be deleted from index.
     permissions.forEach(permission ->
       bulkIndexers.forEach(b ->
-        b.addDeletion(b.getIndexType(), permission)));
+        b.addDeletion(b.getIndexType(), permission, permission)));
 
     bulkIndexers.forEach(b -> indexingResult.add(b.stop()));
 

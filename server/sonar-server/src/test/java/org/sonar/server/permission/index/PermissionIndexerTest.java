@@ -19,6 +19,7 @@
  */
 package org.sonar.server.permission.index;
 
+import java.util.Collection;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -26,6 +27,7 @@ import org.sonar.api.utils.System2;
 import org.sonar.db.DbTester;
 import org.sonar.db.component.ComponentDbTester;
 import org.sonar.db.component.ComponentDto;
+import org.sonar.db.es.EsQueueDto;
 import org.sonar.db.organization.OrganizationDto;
 import org.sonar.db.user.GroupDto;
 import org.sonar.db.user.UserDbTester;
@@ -69,6 +71,37 @@ public class PermissionIndexerTest {
     verifyAnyoneAuthorized(project);
     verifyAuthorized(project, user1);
     verifyAuthorized(project, user2);
+  }
+
+  @Test
+  public void no_esqueue_is_created_on_indexing() {
+    ComponentDto project1 = createUnindexedPublicProject();
+
+    for (ProjectIndexer.Cause cause : ProjectIndexer.Cause.values()) {
+      underTest.createEsQueueForIndexing(dbTester.getSession(), project1.uuid(), ProjectIndexer.Cause.PROJECT_CREATION);
+    }
+
+    assertThat(dbTester.countRowsOfTable(dbTester.getSession(), "es_queue")).isEqualTo(0);
+  }
+
+  @Test
+  public void deletion_resilience_will_deindex_projects() {
+    ComponentDto project1 = createUnindexedPublicProject();
+    ComponentDto project2 = createUnindexedPublicProject();
+    //UserDto user1 = userDbTester.insertUser();
+    indexOnStartup();
+    assertThat(esTester.countDocuments(INDEX_TYPE_FOO_AUTH)).isEqualTo(2);
+
+    // Simulate a indexation issue
+    dbTester.getDbClient().componentDao().delete(dbTester.getSession(), project1.getId());
+    underTest.createEsQueueForDeletion(dbTester.getSession(), project1.uuid());
+    assertThat(dbTester.countRowsOfTable(dbTester.getSession(), "es_queue")).isEqualTo(1);
+    Collection<EsQueueDto> esQueueDtos = dbTester.getDbClient().esQueueDao().selectForRecovery(dbTester.getSession(), Long.MAX_VALUE, 2);
+
+    underTest.index(dbTester.getSession(), esQueueDtos);
+
+    assertThat(dbTester.countRowsOfTable(dbTester.getSession(), "es_queue")).isEqualTo(0);
+    assertThat(esTester.countDocuments(INDEX_TYPE_FOO_AUTH)).isEqualTo(1);
   }
 
   @Test
@@ -280,6 +313,11 @@ public class PermissionIndexerTest {
   private ComponentDto createAndIndexPublicProject() {
     ComponentDto project = componentDbTester.insertPublicProject();
     fooIndexer.indexProject(project.uuid(), ProjectIndexer.Cause.PROJECT_CREATION);
+    return project;
+  }
+
+  private ComponentDto createUnindexedPublicProject() {
+    ComponentDto project = componentDbTester.insertPublicProject();
     return project;
   }
 

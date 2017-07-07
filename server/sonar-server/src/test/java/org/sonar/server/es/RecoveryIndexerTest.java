@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.internal.TestSystem2;
 import org.sonar.api.utils.log.LogTester;
@@ -42,6 +43,7 @@ import org.sonar.db.DbTester;
 import org.sonar.db.es.EsQueueDto;
 import org.sonar.db.rule.RuleDto;
 import org.sonar.db.user.UserDto;
+import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.qualityprofile.index.ActiveRuleIndexer;
 import org.sonar.server.rule.index.RuleIndexDefinition;
 import org.sonar.server.rule.index.RuleIndexer;
@@ -77,6 +79,7 @@ public class RecoveryIndexerTest {
   private UserIndexer mockedUserIndexer = mock(UserIndexer.class);
   private RuleIndexer mockedRuleIndexer = mock(RuleIndexer.class);
   private ActiveRuleIndexer mockedActiveRuleIndexer = mock(ActiveRuleIndexer.class);
+  private PermissionIndexer mockedPermissionIndexer = mock(PermissionIndexer.class);
   private RecoveryIndexer underTest;
 
   @After
@@ -90,7 +93,7 @@ public class RecoveryIndexerTest {
   public void display_default_configuration_at_startup() {
     UserIndexer userIndexer = new UserIndexer(db.getDbClient(), es.client());
     RuleIndexer ruleIndexer = new RuleIndexer(es.client(), db.getDbClient());
-    underTest = newRecoveryIndexer(userIndexer, ruleIndexer, emptySettings);
+    underTest = newRecoveryIndexer(userIndexer, ruleIndexer, emptySettings.asConfig());
 
     underTest.start();
 
@@ -104,7 +107,7 @@ public class RecoveryIndexerTest {
     MapSettings settings = new MapSettings()
       .setProperty("sonar.search.recovery.initialDelayInMs", "0")
       .setProperty("sonar.search.recovery.delayInMs", "1");
-    underTest = spy(new RecoveryIndexer(system2, settings.asConfig(), db.getDbClient(), mockedUserIndexer, mockedRuleIndexer, mockedActiveRuleIndexer));
+    underTest = spy(new RecoveryIndexer(system2, settings.asConfig(), db.getDbClient(), mockedUserIndexer, mockedRuleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer));
     AtomicInteger calls = new AtomicInteger(0);
     doAnswer(invocation -> {
       calls.incrementAndGet();
@@ -244,7 +247,7 @@ public class RecoveryIndexerTest {
     PartiallyFailingUserIndexer failingAboveRatioUserIndexer = new PartiallyFailingUserIndexer(1);
     MapSettings settings = new MapSettings()
       .setProperty("sonar.search.recovery.loopLimit", "3");
-    underTest = newRecoveryIndexer(failingAboveRatioUserIndexer, mockedRuleIndexer, settings);
+    underTest = newRecoveryIndexer(failingAboveRatioUserIndexer, mockedRuleIndexer, settings.asConfig());
     underTest.recover();
 
     assertThatLogsContain(ERROR, "Elasticsearch recovery - too many failures [2/3 documents], waiting for next run");
@@ -264,7 +267,7 @@ public class RecoveryIndexerTest {
     PartiallyFailingUserIndexer failingAboveRatioUserIndexer = new PartiallyFailingUserIndexer(4, 4, 2);
     MapSettings settings = new MapSettings()
       .setProperty("sonar.search.recovery.loopLimit", "5");
-    underTest = newRecoveryIndexer(failingAboveRatioUserIndexer, mockedRuleIndexer, settings);
+    underTest = newRecoveryIndexer(failingAboveRatioUserIndexer, mockedRuleIndexer, settings.asConfig());
     underTest.recover();
 
     assertThatLogsDoNotContain(ERROR, "too many failures");
@@ -453,11 +456,11 @@ public class RecoveryIndexerTest {
       .setProperty("sonar.search.recovery.initialDelayInMs", "0")
       .setProperty("sonar.search.recovery.delayInMs", "1")
       .setProperty("sonar.search.recovery.minAgeInMs", "1");
-    return newRecoveryIndexer(userIndexer, ruleIndexer, settings);
+    return newRecoveryIndexer(userIndexer, ruleIndexer, settings.asConfig());
   }
 
-  private RecoveryIndexer newRecoveryIndexer(UserIndexer userIndexer, RuleIndexer ruleIndexer, MapSettings settings) {
-    return new RecoveryIndexer(system2, settings.asConfig(), db.getDbClient(), userIndexer, ruleIndexer, mockedActiveRuleIndexer);
+  private RecoveryIndexer newRecoveryIndexer(UserIndexer userIndexer, RuleIndexer ruleIndexer, Configuration config) {
+    return new RecoveryIndexer(system2, config, db.getDbClient(), userIndexer, ruleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer);
   }
 
   private EsQueueDto createUnindexedUser() {
