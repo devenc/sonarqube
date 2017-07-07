@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.elasticsearch.action.index.IndexRequest;
 import org.sonar.api.utils.DateUtils;
@@ -47,8 +48,8 @@ import org.sonar.server.permission.index.PermissionIndexerDao.Dto;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toMap;
 import static org.sonar.core.util.stream.MoreCollectors.toArrayList;
-import static org.sonar.core.util.stream.MoreCollectors.toHashSet;
 import static org.sonar.core.util.stream.MoreCollectors.toSet;
 
 /**
@@ -212,14 +213,13 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
     IndexingResult indexingResult = new IndexingResult();
     PermissionIndexerDao permissionIndexerDao = new PermissionIndexerDao();
 
-    Set<String> permissions = items
+    Map<String, EsQueueDto> permissions = items
       .stream()
       .filter(i -> {
         requireNonNull(i.getDocId(), () -> "BUG - " + i + " has not been persisted before indexing");
         return i.getDocType() == EsQueueDto.Type.PERMISSION;
       })
-      .map(EsQueueDto::getDocId)
-      .collect(toHashSet(items.size()));
+      .collect(toMap(EsQueueDto::getDocId, Function.identity()));
 
     ArrayList<BulkIndexer> bulkIndexers = authorizationScopes.stream()
       .map(scope -> new BulkIndexer(esClient, scope.getIndexType(), Size.REGULAR, new ResiliencyIndexingListener(dbClient, dbSession, items)))
@@ -227,7 +227,7 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
 
     bulkIndexers.forEach(BulkIndexer::start);
 
-    permissionIndexerDao.scrollByUuids(dbClient, dbSession, permissions,
+    permissionIndexerDao.scrollByUuids(dbClient, dbSession, permissions.keySet(),
       // only index requests, no deletion requests.
       // Deactivated users are not deleted but updated.
       p -> {
@@ -238,9 +238,9 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
 
     // the remaining logins reference rows that don't exist in db. They must
     // be deleted from index.
-    permissions.forEach(permission ->
+    permissions.forEach((key, value) ->
       bulkIndexers.forEach(b ->
-        b.addDeletion(b.getIndexType(), permission, permission)));
+        b.addDeletion(b.getIndexType(), key, value.getDocRouting())));
 
     bulkIndexers.forEach(b -> indexingResult.add(b.stop()));
 
