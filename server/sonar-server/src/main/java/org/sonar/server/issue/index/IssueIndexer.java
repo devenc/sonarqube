@@ -195,22 +195,22 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
    * For benchmarks
    */
   protected void index(Iterator<IssueDoc> issues) {
-    doIndex(issues, IndexingListener.noop(), Size.LARGE);
+    doIndex(issues, Size.LARGE, IndexingListener.noop());
   }
 
   private IndexingResult doIndex(Collection<String> issueKeys, IndexingListener listener) {
     try (IssueIterator issues = issueIteratorFactory.createForIssueKeys(issueKeys)) {
-      return doIndex(issues, listener, Size.REGULAR);
+      return doIndex(issues, Size.REGULAR, listener);
     }
   }
 
   private IndexingResult doIndex(@Nullable String projectUuid, IndexingListener listener) {
     try (IssueIterator issues = issueIteratorFactory.createForProject(projectUuid)) {
-      return doIndex(issues, listener, projectUuid == null ? Size.LARGE : Size.REGULAR);
+      return doIndex(issues, projectUuid == null ? Size.LARGE : Size.REGULAR, listener);
     }
   }
 
-  private IndexingResult doIndex(Iterator<IssueDoc> issues, IndexingListener listener, Size size) {
+  private IndexingResult doIndex(Iterator<IssueDoc> issues, Size size, IndexingListener listener) {
     BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_ISSUE, size, listener);
     bulk.start();
     while (issues.hasNext()) {
