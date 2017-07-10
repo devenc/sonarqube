@@ -62,9 +62,9 @@ public class ResilientProjectIndexersTest {
       DbSession mockedDbSession = mock(DbSession.class);
       String projectUuid = RandomStringUtils.random(10);
 
-      underTest.commitAndDelete(mockedDbSession, projectUuid);
+      underTest.deleteAndIndex(mockedDbSession, projectUuid);
 
-      indexers.forEach(i -> verify(i).createEsQueueForDeletion(eq(mockedDbSession), eq(projectUuid)));
+      indexers.forEach(i -> verify(i).createEsQueueForIndexing(eq(mockedDbSession), eq(projectUuid)));
       verify(mockedDbSession).commit();
       indexers.forEach(i -> verify(i).deleteProject(eq(projectUuid)));
     }

@@ -140,11 +140,6 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
     // FIXME
   }
 
-  @Override
-  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
-    // FIXME
-  }
-
   public void deleteByKeys(String projectUuid, List<String> issueKeys) {
     if (issueKeys.isEmpty()) {
       return;

@@ -48,6 +48,8 @@ import static org.sonar.server.test.index.TestIndexDefinition.INDEX_TYPE_TEST;
 /**
  * Add to Elasticsearch index {@link TestIndexDefinition} the rows of
  * db table FILE_SOURCES of type TEST that are not indexed yet
+ *
+ * This indexer is not resilient by itself since it's called by Compute Engine
  */
 public class TestIndexer implements ProjectIndexer, StartupIndexer, ResilientIndexer {
 
@@ -124,11 +126,6 @@ public class TestIndexer implements ProjectIndexer, StartupIndexer, ResilientInd
 
   @Override
   public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
-    dbClient.esQueueDao().insert(dbSession, EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, null));
-  }
-
-  @Override
-  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
     dbClient.esQueueDao().insert(dbSession, EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, null));
   }
 

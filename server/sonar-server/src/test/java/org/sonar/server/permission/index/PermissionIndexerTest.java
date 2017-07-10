@@ -83,7 +83,7 @@ public class PermissionIndexerTest {
 
     // Simulate a indexation issue
     dbTester.getDbClient().componentDao().delete(dbTester.getSession(), project1.getId());
-    underTest.createEsQueueForDeletion(dbTester.getSession(), project1.uuid());
+    underTest.createEsQueueForIndexing(dbTester.getSession(), project1.uuid());
     assertThat(dbTester.countRowsOfTable(dbTester.getSession(), "es_queue")).isEqualTo(1);
     Collection<EsQueueDto> esQueueDtos = dbTester.getDbClient().esQueueDao().selectForRecovery(dbTester.getSession(), Long.MAX_VALUE, 2);
 

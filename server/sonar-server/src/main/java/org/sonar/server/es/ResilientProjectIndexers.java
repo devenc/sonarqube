@@ -37,8 +37,8 @@ public class ResilientProjectIndexers {
     indexers.forEach(i -> i.indexProject(projectUuid, cause));
   }
 
-  public void commitAndDelete(DbSession dbSession, String projectUuid) {
-    indexers.forEach(i -> i.createEsQueueForDeletion(dbSession, projectUuid));
+  public void deleteAndIndex(DbSession dbSession, String projectUuid) {
+    indexers.forEach(i -> i.createEsQueueForIndexing(dbSession, projectUuid));
     dbSession.commit();
     indexers.forEach(i -> i.deleteProject(projectUuid));
   }

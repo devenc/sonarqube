@@ -115,11 +115,6 @@ public class ComponentIndexer implements ProjectIndexer, NeedAuthorizationIndexe
     // FIXME
   }
 
-  @Override
-  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
-    // FIXME
-  }
-
   public void delete(String projectUuid, Collection<String> disabledComponentUuids) {
     BulkIndexer bulk = new BulkIndexer(esClient, INDEX_TYPE_COMPONENT, Size.REGULAR);
     bulk.start();

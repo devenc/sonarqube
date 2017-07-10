@@ -76,9 +76,4 @@ public class FooIndexer implements ProjectIndexer, NeedAuthorizationIndexer {
   public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
     // FIXME
   }
-
-  @Override
-  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
-    // FIXME
-  }
 }

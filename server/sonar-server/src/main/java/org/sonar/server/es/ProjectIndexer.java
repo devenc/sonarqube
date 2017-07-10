@@ -59,6 +59,4 @@ public interface ProjectIndexer {
 
   void createEsQueueForIndexing(DbSession dbSession, String projectUuid);
 
-  void createEsQueueForDeletion(DbSession dbSession, String projectUuid);
-
 }

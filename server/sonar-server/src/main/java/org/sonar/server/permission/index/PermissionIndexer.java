@@ -143,15 +143,6 @@ public class PermissionIndexer implements ProjectIndexer, StartupIndexer, Resili
   }
 
   @Override
-  public void createEsQueueForDeletion(DbSession dbSession, String projectUuid) {
-    ArrayList<EsQueueDto> esQueueDtos = authorizationScopes.stream()
-      .map(scope -> EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, projectUuid))
-      .collect(toArrayList());
-
-    dbClient.esQueueDao().insert(dbSession, esQueueDtos);
-  }
-
-  @Override
   public void createEsQueueForIndexing(DbSession dbSession, String projectUuid) {
     ArrayList<EsQueueDto> esQueueDtos = authorizationScopes.stream()
       .map(scope -> EsQueueDto.create(EsQueueDto.Type.PERMISSION, projectUuid, null, projectUuid))
