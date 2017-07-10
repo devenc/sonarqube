@@ -213,7 +213,7 @@
     </foreach>
   </select>
 
-  <select id="selectByKeysForIndexing" parameterMap="map" resultType="org.sonar.db.issue.IssueForIndexingDto">
+  <select id="selectByKeysForIndexing" parameterType="map" resultType="org.sonar.db.issue.IssueForIndexingDto">
     select
     <include refid="issueForIndexingColumns"/>
     from issues i
@@ -222,12 +222,12 @@
     inner join projects root on root.uuid=i.project_uuid
     where
       i.kee in
-      <foreach collection="kees" open="(" close=")" item="key" separator=",">
+      <foreach collection="keys" open="(" close=")" item="key" separator=",">
         #{key,jdbcType=VARCHAR}
       </foreach>
   </select>
 
-  <select id="selectByRootUuidForIndexing" parameterMap="map" resultType="org.sonar.db.issue.IssueForIndexingDto">
+  <select id="selectByRootUuidForIndexing" parameterType="map" resultType="org.sonar.db.issue.IssueForIndexingDto">
     select
     <include refid="issueForIndexingColumns"/>
     from issues i

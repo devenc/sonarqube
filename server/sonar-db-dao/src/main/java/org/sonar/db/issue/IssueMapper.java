@@ -43,5 +43,5 @@ public interface IssueMapper {
 
   List<IssueForIndexingDto> selectByRootKeyForIndexing(@Nullable @Param("rootUuid") String rootUuid);
 
-  List<IssueForIndexingDto> selectByKeysForIndexing(@Param("kees") List<String> kees);
+  List<IssueForIndexingDto> selectByKeysForIndexing(@Param("keys") List<String> keys);
 }

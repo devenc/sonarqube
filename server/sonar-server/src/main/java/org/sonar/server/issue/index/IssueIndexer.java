@@ -71,8 +71,8 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
 
   public IssueIndexer(EsClient esClient, DbClient dbClient, IssueIteratorFactory issueIteratorFactory) {
     this.esClient = esClient;
-    this.issueIteratorFactory = issueIteratorFactory;
     this.dbClient = dbClient;
+    this.issueIteratorFactory = issueIteratorFactory;
   }
 
   @Override
@@ -121,12 +121,6 @@ public class IssueIndexer implements ProjectIndexer, NeedAuthorizationIndexer, S
 
   // To be resilient
   public void index(Collection<String> issueKeys) {
-    try (DbSession dbSession = dbClient.openSession(false)) {
-      issueKeys.forEach(i ->
-        dbClient.esQueueDao().insert(dbSession, EsQueueDto.create(EsQueueDto.Type.ISSUE, i, ID_TYPE_ISSUE_KEYS, i))
-      );
-    }
-
     doIndex(issueKeys, IndexingListener.noop());
   }
 

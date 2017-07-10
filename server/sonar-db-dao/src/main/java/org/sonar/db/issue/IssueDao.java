@@ -104,12 +104,19 @@ public class IssueDao implements Dao {
     }
   }
 
-  public void scroll(DbSession dbSession, @Nullable String rootUuid, List<String> kees, Consumer<IssueForIndexingDto> consumer) {
+  public void scrollByRootUuid(DbSession dbSession, @Nullable String rootUuid, Consumer<IssueForIndexingDto> consumer) {
     IssueMapper issueMapper = mapper(dbSession);
 
-    executeLargeInputsWithoutOutput(kees,
-      pageOfKees -> issueMapper
-        .selectForIndexing(rootUuid, pageOfKees)
+    issueMapper.selectByRootKeyForIndexing(rootUuid)
+        .forEach(consumer);
+  }
+
+  public void scrollByKeys(DbSession dbSession, List<String> keys, Consumer<IssueForIndexingDto> consumer) {
+    IssueMapper issueMapper = mapper(dbSession);
+
+    executeLargeInputsWithoutOutput(keys,
+      pageOfKeys -> issueMapper
+        .selectByKeysForIndexing(pageOfKeys)
         .forEach(consumer)
     );
   }
