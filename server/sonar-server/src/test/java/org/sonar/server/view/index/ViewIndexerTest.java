@@ -68,7 +68,7 @@ public class ViewIndexerTest {
 
   private DbClient dbClient = dbTester.getDbClient();
   private DbSession dbSession = dbTester.getSession();
-  private IssueIndexer issueIndexer = new IssueIndexer(esTester.client(), new IssueIteratorFactory(dbClient));
+  private IssueIndexer issueIndexer = new IssueIndexer(esTester.client(), dbClient, new IssueIteratorFactory(dbClient));
   private PermissionIndexer permissionIndexer = new PermissionIndexer(dbClient, esTester.client(), issueIndexer);
   private ViewIndexer underTest = new ViewIndexer(dbClient, esTester.client());
 
@@ -125,7 +125,7 @@ public class ViewIndexerTest {
   @Test
   public void clear_views_lookup_cache_on_index_view_uuid() {
     IssueIndex issueIndex = new IssueIndex(esTester.client(), System2.INSTANCE, userSessionRule, new AuthorizationTypeSupport(userSessionRule));
-    IssueIndexer issueIndexer = new IssueIndexer(esTester.client(), new IssueIteratorFactory(dbClient));
+    IssueIndexer issueIndexer = new IssueIndexer(esTester.client(), dbClient, new IssueIteratorFactory(dbClient));
 
     String viewUuid = "ABCD";
 

@@ -64,7 +64,7 @@ public class TagsActionTest {
   @Rule
   public EsTester esTester = new EsTester(new IssueIndexDefinition(settings.asConfig()), new RuleIndexDefinition(settings.asConfig()));
 
-  private IssueIndexer issueIndexer = new IssueIndexer(esTester.client(), new IssueIteratorFactory(dbTester.getDbClient()));
+  private IssueIndexer issueIndexer = new IssueIndexer(esTester.client(), dbTester.getDbClient(), new IssueIteratorFactory(dbTester.getDbClient()));
   private RuleIndexer ruleIndexer = new RuleIndexer(esTester.client(), dbTester.getDbClient());
   private PermissionIndexerTester permissionIndexerTester = new PermissionIndexerTester(esTester, issueIndexer);
   private IssueIndex issueIndex = new IssueIndex(esTester.client(), System2.INSTANCE, userSession, new AuthorizationTypeSupport(userSession));

@@ -61,7 +61,7 @@ public class IssueIndexerTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private IssueIndexer underTest = new IssueIndexer(esTester.client(), new IssueIteratorFactory(dbTester.getDbClient()));
+  private IssueIndexer underTest = new IssueIndexer(esTester.client(), dbTester.getDbClient(), new IssueIteratorFactory(dbTester.getDbClient()));
 
   @Test
   public void index_on_startup() {
@@ -243,7 +243,7 @@ public class IssueIndexerTest {
     issueDoc.setKey("key");
     issueDoc.setTechnicalUpdateDate(new Date());
     issueDoc.setProjectUuid("non-exitsing-parent");
-    new IssueIndexer(esTester.client(), new IssueIteratorFactory(dbTester.getDbClient()))
+    new IssueIndexer(esTester.client(), dbTester.getDbClient(), new IssueIteratorFactory(dbTester.getDbClient()))
       .index(asList(issueDoc).iterator());
 
     assertThat(esTester.countDocuments(IssueIndexDefinition.INDEX_TYPE_ISSUE)).isEqualTo(1L);

@@ -43,6 +43,7 @@ import org.sonar.db.DbTester;
 import org.sonar.db.es.EsQueueDto;
 import org.sonar.db.rule.RuleDto;
 import org.sonar.db.user.UserDto;
+import org.sonar.server.issue.index.IssueIndexer;
 import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.qualityprofile.index.ActiveRuleIndexer;
 import org.sonar.server.rule.index.RuleIndexDefinition;
@@ -80,6 +81,7 @@ public class RecoveryIndexerTest {
   private RuleIndexer mockedRuleIndexer = mock(RuleIndexer.class);
   private ActiveRuleIndexer mockedActiveRuleIndexer = mock(ActiveRuleIndexer.class);
   private PermissionIndexer mockedPermissionIndexer = mock(PermissionIndexer.class);
+  private IssueIndexer mockedIssueIndexer = mock(IssueIndexer.class);
   private RecoveryIndexer underTest;
 
   @After
@@ -107,7 +109,7 @@ public class RecoveryIndexerTest {
     MapSettings settings = new MapSettings()
       .setProperty("sonar.search.recovery.initialDelayInMs", "0")
       .setProperty("sonar.search.recovery.delayInMs", "1");
-    underTest = spy(new RecoveryIndexer(system2, settings.asConfig(), db.getDbClient(), mockedUserIndexer, mockedRuleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer));
+    underTest = spy(new RecoveryIndexer(system2, settings.asConfig(), db.getDbClient(), mockedUserIndexer, mockedRuleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer, mockedIssueIndexer));
     AtomicInteger calls = new AtomicInteger(0);
     doAnswer(invocation -> {
       calls.incrementAndGet();
@@ -460,7 +462,7 @@ public class RecoveryIndexerTest {
   }
 
   private RecoveryIndexer newRecoveryIndexer(UserIndexer userIndexer, RuleIndexer ruleIndexer, Configuration config) {
-    return new RecoveryIndexer(system2, config, db.getDbClient(), userIndexer, ruleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer);
+    return new RecoveryIndexer(system2, config, db.getDbClient(), userIndexer, ruleIndexer, mockedActiveRuleIndexer, mockedPermissionIndexer, mockedIssueIndexer);
   }
 
   private EsQueueDto createUnindexedUser() {
