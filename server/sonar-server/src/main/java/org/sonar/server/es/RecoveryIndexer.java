@@ -39,6 +39,7 @@ import org.sonar.core.util.stream.MoreCollectors;
 import org.sonar.db.DbClient;
 import org.sonar.db.DbSession;
 import org.sonar.db.es.EsQueueDto;
+import org.sonar.server.issue.index.IssueIndexer;
 import org.sonar.server.permission.index.PermissionIndexer;
 import org.sonar.server.qualityprofile.index.ActiveRuleIndexer;
 import org.sonar.server.rule.index.RuleIndexer;
@@ -71,11 +72,13 @@ public class RecoveryIndexer implements Startable {
   private final RuleIndexer ruleIndexer;
   private final ActiveRuleIndexer activeRuleIndexer;
   private final PermissionIndexer permissionIndexer;
+  private final IssueIndexer issueIndexer;
   private final long minAgeInMs;
   private final long loopLimit;
 
   public RecoveryIndexer(System2 system2, Configuration config, DbClient dbClient,
-      UserIndexer userIndexer, RuleIndexer ruleIndexer, ActiveRuleIndexer activeRuleIndexer, PermissionIndexer permissionIndexer) {
+                         UserIndexer userIndexer, RuleIndexer ruleIndexer, ActiveRuleIndexer activeRuleIndexer, PermissionIndexer permissionIndexer,
+                         IssueIndexer issueIndexer) {
     this.system2 = system2;
     this.config = config;
     this.dbClient = dbClient;
@@ -83,6 +86,7 @@ public class RecoveryIndexer implements Startable {
     this.ruleIndexer = ruleIndexer;
     this.activeRuleIndexer = activeRuleIndexer;
     this.permissionIndexer = permissionIndexer;
+    this.issueIndexer = issueIndexer;
     this.minAgeInMs = getSetting(PROPERTY_MIN_AGE, DEFAULT_MIN_AGE_IN_MS);
     this.loopLimit = getSetting(PROPERTY_LOOP_LIMIT, DEFAULT_LOOP_LIMIT);
   }
@@ -156,6 +160,8 @@ public class RecoveryIndexer implements Startable {
         return activeRuleIndexer.index(dbSession, typeItems);
       case PERMISSION:
         return permissionIndexer.index(dbSession, typeItems);
+      case ISSUE:
+        return issueIndexer.index(dbSession, typeItems);
       default:
         LOGGER.error(LOG_PREFIX + "ignore {} documents with unsupported type {}", typeItems.size(), type);
         return new IndexingResult();
