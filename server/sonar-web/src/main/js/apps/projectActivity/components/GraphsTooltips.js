@@ -49,7 +49,7 @@ export default class GraphsTooltips extends React.PureComponent {
 
   render() {
     const { events, measuresHistory, tooltipIdx } = this.props;
-    const top = 50;
+    const top = 20;
     let left = this.props.tooltipPos + 60;
     let customClass;
     if (left > this.props.graphWidth - TOOLTIP_WIDTH - 50) {

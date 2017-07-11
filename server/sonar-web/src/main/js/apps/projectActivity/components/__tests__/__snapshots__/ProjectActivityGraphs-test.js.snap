@@ -7,6 +7,16 @@ exports[`should render correctly the graph and legends 1`] = `
   <ProjectActivityGraphsHeader
     addCustomMetric={[Function]}
     graph="overview"
+    metrics={
+      Array [
+        Object {
+          "key": "code_smells",
+          "name": "Code Smells",
+          "type": "INT",
+        },
+      ]
+    }
+    metricsTypeFilter={null}
     updateGraph={[Function]}
   />
   <GraphsHistory
@@ -73,6 +83,15 @@ exports[`should render correctly the graph and legends 1`] = `
         },
       ]
     }
+    metrics={
+      Array [
+        Object {
+          "key": "code_smells",
+          "name": "Code Smells",
+          "type": "INT",
+        },
+      ]
+    }
     metricsType="INT"
     removeCustomMetric={[Function]}
     series={
@@ -95,6 +114,7 @@ exports[`should render correctly the graph and legends 1`] = `
           "name": "code_smells",
           "style": "1",
           "translatedName": "metric.code_smells.name",
+          "type": "INT",
         },
       ]
     }
@@ -127,6 +147,7 @@ exports[`should render correctly the graph and legends 1`] = `
           "name": "code_smells",
           "style": "1",
           "translatedName": "metric.code_smells.name",
+          "type": "INT",
         },
       ]
     }
@@ -140,6 +161,30 @@ exports[`should render correctly with filter history on dates 1`] = `
 Object {
   "graphEndDate": null,
   "graphStartDate": "2016-10-27T12:21:15+0200",
+  "graphs": Array [
+    Array [
+      Object {
+        "data": Array [
+          Object {
+            "x": 2016-10-26T10:17:29.000Z,
+            "y": 2286,
+          },
+          Object {
+            "x": 2016-10-27T10:21:15.000Z,
+            "y": 1749,
+          },
+          Object {
+            "x": 2016-10-27T14:33:50.000Z,
+            "y": 500,
+          },
+        ],
+        "name": "code_smells",
+        "style": "1",
+        "translatedName": "metric.code_smells.name",
+        "type": "INT",
+      },
+    ],
+  ],
   "series": Array [
     Object {
       "data": Array [
@@ -159,6 +204,7 @@ Object {
       "name": "code_smells",
       "style": "1",
       "translatedName": "metric.code_smells.name",
+      "type": "INT",
     },
   ],
 }

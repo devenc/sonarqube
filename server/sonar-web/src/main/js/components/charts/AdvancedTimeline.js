@@ -27,7 +27,7 @@ import { line as d3Line, area, curveBasis } from 'd3-shape';
 
 type Event = { className?: string, name: string, date: Date };
 export type Point = { x: Date, y: number | string };
-export type Serie = { name: string, data: Array<Point>, style: string };
+export type Serie = { name: string, data: Array<Point>, style: string, type: string };
 type Scale = Function;
 
 type Props = {
@@ -441,7 +441,11 @@ export default class AdvancedTimeline extends React.PureComponent {
     return (
       <defs>
         <clipPath id="chart-clip">
-          <rect width={this.state.xScale.range()[1]} height={this.state.yScale.range()[0] + 10} />
+          <rect
+            width={this.state.xScale.range()[1]}
+            height={this.state.yScale.range()[0] + 10}
+            transform="translate(0,-5)"
+          />
         </clipPath>
       </defs>
     );

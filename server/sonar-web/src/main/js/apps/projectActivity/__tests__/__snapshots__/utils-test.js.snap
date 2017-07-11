@@ -15,6 +15,7 @@ Object {
   "name": "covered_lines",
   "style": "style",
   "translatedName": "project_activity.custom_metric.covered_lines",
+  "type": "INT",
 }
 `;
 
@@ -34,6 +35,7 @@ Array [
     "name": "lines_to_cover",
     "style": "0",
     "translatedName": "metric.lines_to_cover.name",
+    "type": "PERCENT",
   },
   Object {
     "data": Array [
@@ -49,6 +51,7 @@ Array [
     "name": "covered_lines",
     "style": "1",
     "translatedName": "project_activity.custom_metric.covered_lines",
+    "type": "INT",
   },
 ]
 `;

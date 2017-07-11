@@ -29,6 +29,7 @@ type Props = {
   addMetric: (metric: string) => void,
   className?: string,
   metrics: Array<Metric>,
+  metricsTypeFilter: ?Array<string>,
   selectedMetrics: Array<string>
 };
 
@@ -43,23 +44,17 @@ export default class AddGraphMetric extends React.PureComponent {
     open: false
   };
 
-  getMetricsType = () => {
-    if (this.props.selectedMetrics.length > 0) {
-      const metric = this.props.metrics.find(
-        metric => metric.key === this.props.selectedMetrics[0]
-      );
-      return metric && metric.type;
-    }
-  };
-
-  getMetricsOptions = (selectedType: ?string) => {
+  getMetricsOptions = (metricsTypeFilter: ?Array<string>) => {
     return this.props.metrics
       .filter(metric => {
         if (metric.hidden || isDiffMetric(metric.key)) {
           return false;
         }
-        if (selectedType) {
-          return selectedType === metric.type && !this.props.selectedMetrics.includes(metric.key);
+        if (metricsTypeFilter && metricsTypeFilter.length > 0) {
+          return (
+            metricsTypeFilter.includes(metric.type) &&
+            !this.props.selectedMetrics.includes(metric.key)
+          );
         }
         return true;
       })
@@ -94,7 +89,7 @@ export default class AddGraphMetric extends React.PureComponent {
   };
 
   renderModal() {
-    const metricType = this.getMetricsType();
+    const { metricsTypeFilter } = this.props;
     return (
       <Modal
         isOpen={true}
@@ -115,16 +110,17 @@ export default class AddGraphMetric extends React.PureComponent {
                 clearable={false}
                 noResultsText={translate('no_results')}
                 onChange={this.handleChange}
-                options={this.getMetricsOptions(metricType)}
+                options={this.getMetricsOptions(metricsTypeFilter)}
                 placeholder=""
                 searchable={true}
                 value={this.state.selectedMetric}
               />
-              {metricType != null &&
+              {metricsTypeFilter != null &&
+                metricsTypeFilter.length > 0 &&
                 <span className="note">
                   {translateWithParameters(
                     'project_activity.graphs.custom.type_x_message',
-                    translate('metric.type', metricType)
+                    metricsTypeFilter.map(type => translate('metric.type', type)).sort().join(', ')
                   )}
                 </span>}
             </div>
@@ -149,7 +145,7 @@ export default class AddGraphMetric extends React.PureComponent {
       <button
         className={this.props.className}
         onClick={this.openForm}
-        disabled={this.props.selectedMetrics.length >= 3}>
+        disabled={this.props.selectedMetrics.length >= 6}>
         {translate('project_activity.graphs.custom.add')}
         {this.state.open && this.renderModal()}
       </button>

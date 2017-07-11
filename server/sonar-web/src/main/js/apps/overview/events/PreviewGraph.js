@@ -21,7 +21,11 @@
 import React from 'react';
 import { minBy } from 'lodash';
 import { AutoSizer } from 'react-virtualized';
-import { generateSeries, GRAPHS_METRICS_DISPLAYED } from '../../projectActivity/utils';
+import {
+  generateSeries,
+  getSeriesMetricType,
+  GRAPHS_METRICS_DISPLAYED
+} from '../../projectActivity/utils';
 import { getGraph } from '../../../helpers/storage';
 import AdvancedTimeline from '../../../components/charts/AdvancedTimeline';
 import PreviewGraphTooltips from './PreviewGraphTooltips';
@@ -38,7 +42,6 @@ type Props = {
 
 type State = {
   graph: string,
-  metricsType: string,
   selectedDate: ?Date,
   series: Array<Serie>,
   tooltipIdx: ?number,
@@ -54,12 +57,10 @@ export default class PreviewGraph extends React.PureComponent {
   constructor(props: Props) {
     super(props);
     const graph = getGraph();
-    const metricsType = this.getMetricType(props.metrics, graph);
     this.state = {
       graph,
-      metricsType,
       selectedDate: null,
-      series: this.getSeries(props.history, graph, metricsType),
+      series: this.getSeries(props.history, graph, props.metrics),
       tooltipIdx: null,
       tooltipXPos: null
     };
@@ -68,17 +69,15 @@ export default class PreviewGraph extends React.PureComponent {
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.history !== this.props.history || nextProps.metrics !== this.props.metrics) {
       const graph = getGraph();
-      const metricsType = this.getMetricType(nextProps.metrics, graph);
       this.setState({
         graph,
-        metricsType,
-        series: this.getSeries(nextProps.history, graph, metricsType)
+        series: this.getSeries(nextProps.history, graph, nextProps.metrics)
       });
     }
   }
 
   formatValue = (tick: number | string) =>
-    formatMeasure(tick, getShortType(this.state.metricsType));
+    formatMeasure(tick, getShortType(this.state.series[0].type));
 
   getDisplayedMetrics = (graph: string): Array<string> => {
     const metrics: Array<string> = GRAPHS_METRICS_DISPLAYED[graph];
@@ -88,29 +87,23 @@ export default class PreviewGraph extends React.PureComponent {
     return metrics;
   };
 
-  getSeries = (history: ?History, graph: string, metricsType: string) => {
+  getSeries = (history: ?History, graph: string, metrics: Array<Metric>) => {
     const myHistory = history;
     if (!myHistory) {
       return [];
     }
-    const metrics = this.getDisplayedMetrics(graph);
+    const displayedMetrics = this.getDisplayedMetrics(graph);
     const firstValid = minBy(
-      metrics.map(metric => myHistory[metric].find(p => p.value || p.value === 0)),
+      displayedMetrics.map(metric => myHistory[metric].find(p => p.value || p.value === 0)),
       'date'
     );
-    const measureHistory = metrics.map(metric => ({
+    const measureHistory = displayedMetrics.map(metric => ({
       metric,
       history: firstValid
         ? myHistory[metric].filter(p => p.date >= firstValid.date)
         : myHistory[metric]
     }));
-    return generateSeries(measureHistory, graph, metricsType, metrics);
-  };
-
-  getMetricType = (metrics: Array<Metric>, graph: string) => {
-    const metricKey = this.getDisplayedMetrics(graph)[0];
-    const metric = metrics.find(metric => metric.key === metricKey);
-    return metric ? metric.type : 'INT';
+    return generateSeries(measureHistory, graph, metrics, displayedMetrics);
   };
 
   handleClick = () => {
@@ -139,7 +132,7 @@ export default class PreviewGraph extends React.PureComponent {
                 hideGrid={true}
                 hideXAxis={true}
                 interpolate="linear"
-                metricType={this.state.metricsType}
+                metricType={getSeriesMetricType(series)}
                 padding={GRAPH_PADDING}
                 series={series}
                 showAreas={['coverage', 'duplications'].includes(graph)}

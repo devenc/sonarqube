@@ -72,6 +72,11 @@ const HISTORY = [
   }
 ];
 
+const METRICS = [
+  { key: 'lines_to_cover', name: 'Line to Cover', type: 'PERCENT' },
+  { key: 'uncovered_lines', name: 'Uncovered Lines', type: 'INT' }
+];
+
 const QUERY = {
   category: '',
   from: new Date('2017-04-27T08:21:32+0200'),
@@ -101,7 +106,7 @@ describe('generateCoveredLinesMetric', () => {
 describe('generateSeries', () => {
   it('should correctly generate the series', () => {
     expect(
-      utils.generateSeries(HISTORY, 'coverage', 'INT', ['lines_to_cover', 'uncovered_lines'])
+      utils.generateSeries(HISTORY, 'coverage', METRICS, ['lines_to_cover', 'uncovered_lines'])
     ).toMatchSnapshot();
   });
 });

@@ -30,7 +30,7 @@ import {
   serializeString
 } from '../../helpers/query';
 import { translate } from '../../helpers/l10n';
-import type { Analysis, MeasureHistory, Query } from './types';
+import type { Analysis, MeasureHistory, Metric, Query } from './types';
 import type { RawQuery } from '../../helpers/query';
 import type { Serie } from '../../components/charts/AdvancedTimeline';
 
@@ -94,14 +94,15 @@ export const generateCoveredLinesMetric = (
       : [],
     name: 'covered_lines',
     style,
-    translatedName: translate('project_activity.custom_metric.covered_lines')
+    translatedName: translate('project_activity.custom_metric.covered_lines'),
+    type: 'INT'
   };
 };
 
 export const generateSeries = (
   measuresHistory: Array<MeasureHistory>,
   graph: string,
-  dataType: string,
+  metrics: Array<Metric>,
   displayedMetrics: Array<string>
 ): Array<Serie> => {
   if (displayedMetrics.length <= 0) {
@@ -117,17 +118,22 @@ export const generateSeries = (
           displayedMetrics.indexOf(measure.metric).toString()
         );
       }
+      const metric = metrics.find(metric => metric.key === measure.metric);
       return {
-        name: measure.metric,
-        translatedName: translate('metric', measure.metric, 'name'),
-        style: displayedMetrics.indexOf(measure.metric).toString(),
         data: measure.history.map(analysis => ({
           x: analysis.date,
-          y: dataType === 'LEVEL' ? analysis.value : Number(analysis.value)
-        }))
+          y: metric && metric.type === 'LEVEL' ? analysis.value : Number(analysis.value)
+        })),
+        name: measure.metric,
+        style: displayedMetrics.indexOf(measure.metric).toString(),
+        translatedName: translate('metric', measure.metric, 'name'),
+        type: metric ? metric.type : 'INT'
       };
     });
 };
+
+export const getSeriesMetricType = (series: Array<Serie>): string =>
+  (series.length > 0 ? series[0].type : 'INT');
 
 export const getAnalysesByVersionByDay = (
   analyses: Array<Analysis>,

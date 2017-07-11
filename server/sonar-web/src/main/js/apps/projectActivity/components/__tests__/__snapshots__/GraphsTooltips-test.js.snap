@@ -6,7 +6,7 @@ exports[`should render correctly for overview graphs 1`] = `
   position={
     Object {
       "left": 476,
-      "top": 50,
+      "top": 20,
       "width": 250,
     }
   }
@@ -104,7 +104,7 @@ exports[`should render correctly for random graphs 1`] = `
   position={
     Object {
       "left": 476,
-      "top": 50,
+      "top": 20,
       "width": 250,
     }
   }

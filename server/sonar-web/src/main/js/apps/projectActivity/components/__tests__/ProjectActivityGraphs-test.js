@@ -56,6 +56,8 @@ const ANALYSES = [
   }
 ];
 
+const METRICS = [{ key: 'code_smells', name: 'Code Smells', type: 'INT' }];
+
 const DEFAULT_PROPS = {
   analyses: ANALYSES,
   leakPeriodDate: '2017-05-16T13:50:02+0200',
@@ -70,7 +72,7 @@ const DEFAULT_PROPS = {
       ]
     }
   ],
-  metricsType: 'INT',
+  metrics: METRICS,
   query: { category: '', graph: 'overview', project: 'org.sonarsource.sonarqube:sonarqube' },
   updateQuery: () => {}
 };
