@@ -30,14 +30,14 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class ResilientProjectIndexersTest {
+public class ProjectIndexersImplTest {
 
   @Test
   public void commitAndIndex_must_call_createEsQueueForIndexing_commit_and_indexProject() {
     List<ProjectIndexer> indexers = new ArrayList<>();
     IntStream.rangeClosed(1,5).forEach(i -> indexers.add(mock(ProjectIndexer.class)));
 
-    ResilientProjectIndexers underTest = new ResilientProjectIndexers(indexers);
+    ProjectIndexers underTest = new ProjectIndexersImpl(indexers.toArray(new ProjectIndexer[0]));
 
     for (ProjectIndexer.Cause cause : ProjectIndexer.Cause.values()) {
       DbSession mockedDbSession = mock(DbSession.class);
@@ -48,25 +48,6 @@ public class ResilientProjectIndexersTest {
       indexers.forEach(i -> verify(i).createEsQueueForIndexing(eq(mockedDbSession), eq(projectUuid)));
       verify(mockedDbSession).commit();
       indexers.forEach(i -> verify(i).indexProject(eq(projectUuid), eq(cause)));
-    }
-  }
-
-  @Test
-  public void commitAndDelete_must_call_createEsQueueForDeletion_commit_and_deleteProject() {
-    List<ProjectIndexer> indexers = new ArrayList<>();
-    IntStream.rangeClosed(1,5).forEach(i -> indexers.add(mock(ProjectIndexer.class)));
-
-    ResilientProjectIndexers underTest = new ResilientProjectIndexers(indexers);
-
-    for (ProjectIndexer.Cause cause : ProjectIndexer.Cause.values()) {
-      DbSession mockedDbSession = mock(DbSession.class);
-      String projectUuid = RandomStringUtils.random(10);
-
-      underTest.deleteAndIndex(mockedDbSession, projectUuid);
-
-      indexers.forEach(i -> verify(i).createEsQueueForIndexing(eq(mockedDbSession), eq(projectUuid)));
-      verify(mockedDbSession).commit();
-      indexers.forEach(i -> verify(i).deleteProject(eq(projectUuid)));
     }
   }
 }

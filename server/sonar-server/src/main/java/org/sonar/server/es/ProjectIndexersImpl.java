@@ -23,23 +23,20 @@ package org.sonar.server.es;
 import java.util.List;
 import org.sonar.db.DbSession;
 
-public class ResilientProjectIndexers {
+import static java.util.Arrays.asList;
+
+public class ProjectIndexersImpl implements ProjectIndexers {
 
   private final List<ProjectIndexer> indexers;
 
-  public ResilientProjectIndexers(List<ProjectIndexer> indexers) {
-    this.indexers = indexers;
+  public ProjectIndexersImpl(ProjectIndexer... indexers) {
+    this.indexers = asList(indexers);
   }
 
+  @Override
   public void commitAndIndex(DbSession dbSession, String projectUuid, ProjectIndexer.Cause cause) {
     indexers.forEach(i -> i.createEsQueueForIndexing(dbSession, projectUuid));
     dbSession.commit();
     indexers.forEach(i -> i.indexProject(projectUuid, cause));
-  }
-
-  public void deleteAndIndex(DbSession dbSession, String projectUuid) {
-    indexers.forEach(i -> i.createEsQueueForIndexing(dbSession, projectUuid));
-    dbSession.commit();
-    indexers.forEach(i -> i.deleteProject(projectUuid));
   }
 }

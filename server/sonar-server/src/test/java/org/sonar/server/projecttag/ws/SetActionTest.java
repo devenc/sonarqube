@@ -32,7 +32,7 @@ import org.sonar.db.DbSession;
 import org.sonar.db.DbTester;
 import org.sonar.db.component.ComponentDto;
 import org.sonar.server.component.TestComponentFinder;
-import org.sonar.server.es.ResilientProjectIndexers;
+import org.sonar.server.es.TestProjectIndexers;
 import org.sonar.server.exceptions.BadRequestException;
 import org.sonar.server.exceptions.ForbiddenException;
 import org.sonar.server.tester.UserSessionRule;
@@ -41,7 +41,6 @@ import org.sonar.server.ws.TestResponse;
 import org.sonar.server.ws.WsActionTester;
 
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.sonar.core.util.Protobuf.setNullable;
 import static org.sonar.db.component.ComponentTesting.newFileDto;
@@ -59,9 +58,9 @@ public class SetActionTest {
   private DbSession dbSession = db.getSession();
   private ComponentDto project;
 
-  private ResilientProjectIndexers indexer = new ResilientProjectIndexers(emptyList());
+  private TestProjectIndexers projectIndexers = new TestProjectIndexers();
 
-  private WsActionTester ws = new WsActionTester(new SetAction(dbClient, TestComponentFinder.from(db), userSession, indexer));
+  private WsActionTester ws = new WsActionTester(new SetAction(dbClient, TestComponentFinder.from(db), userSession, projectIndexers));
 
   @Before
   public void setUp() {
