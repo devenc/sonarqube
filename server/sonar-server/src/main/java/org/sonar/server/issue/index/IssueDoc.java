@@ -35,7 +35,10 @@ import org.sonar.api.rule.Severity;
 import org.sonar.api.rules.RuleType;
 import org.sonar.api.utils.Duration;
 import org.sonar.api.utils.KeyValueFormat;
+import org.sonar.db.issue.IssueForIndexingDto;
 import org.sonar.server.es.BaseDoc;
+
+import static org.sonar.api.utils.DateUtils.longToDate;
 
 public class IssueDoc extends BaseDoc implements Issue {
 
@@ -421,5 +424,40 @@ public class IssueDoc extends BaseDoc implements Issue {
   public IssueDoc setOrganizationUuid(String s) {
     setField(IssueIndexDefinition.FIELD_ISSUE_ORGANIZATION_UUID, s);
     return this;
+  }
+
+  public static IssueDoc of(IssueForIndexingDto issue) {
+    IssueDoc doc = new IssueDoc(Maps.newHashMapWithExpectedSize(30));
+
+    // all the fields must be present, even if value is null
+    doc.setKey(issue.getKey());
+    doc.setProjectUuid(issue.getProjectUuid());
+    doc.setTechnicalUpdateDate(longToDate(issue.getUpdatedAt()));
+    doc.setAssignee(issue.getAssignee());
+    doc.setGap(issue.getGap());
+    doc.setAttributes(issue.getAttributes());
+    doc.setLine(issue.getLine());
+    doc.setMessage(issue.getMessage());
+    doc.setResolution(issue.getResolution());
+    doc.setSeverity(issue.getSeverity());
+    doc.setManualSeverity(issue.getManualSeverity());
+    doc.setChecksum(issue.getChecksum());
+    doc.setStatus(issue.getStatus());
+    doc.setEffort(issue.getEffort());
+    doc.setAuthorLogin(issue.getAuthorLogin());
+    doc.setFuncCloseDate(longToDate(issue.getIssueCloseDate()));
+    doc.setFuncCreationDate(longToDate(issue.getIssueCreationDate()));
+    doc.setFuncUpdateDate(longToDate(issue.getIssueUpdateDate()));
+    doc.setRuleKey(issue.getRuleKey().toString());
+    doc.setLanguage(issue.getLanguage());
+    doc.setComponentUuid(issue.getComponentUuid());
+    doc.setModuleUuid(issue.getModuleUuid());
+    doc.setModuleUuidPath(issue.getModuleUuidPath());
+    doc.setFilePath(issue.getFilePath());
+    doc.setDirectoryPath(issue.getDirectoryPath());
+    doc.setOrganizationUuid(issue.getOrganizationUuid());
+    doc.setTags(issue.getTagsAsList());
+    doc.setType(issue.getRuleType());
+    return doc;
   }
 }

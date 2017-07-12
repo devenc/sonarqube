@@ -21,6 +21,7 @@ package org.sonar.db.issue;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.session.ResultHandler;
 
@@ -39,4 +40,8 @@ public interface IssueMapper {
   int update(IssueDto issue);
 
   int updateIfBeforeSelectedDate(IssueDto issue);
+
+  List<IssueForIndexingDto> selectByRootKeyForIndexing(@Nullable @Param("rootUuid") String rootUuid);
+
+  List<IssueForIndexingDto> selectByKeysForIndexing(@Param("kees") List<String> kees);
 }

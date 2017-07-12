@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.sonar.db.Dao;
@@ -34,6 +35,7 @@ import org.sonar.db.RowNotFoundException;
 
 import static com.google.common.collect.FluentIterable.from;
 import static org.sonar.db.DatabaseUtils.executeLargeInputs;
+import static org.sonar.db.DatabaseUtils.executeLargeInputsWithoutOutput;
 
 public class IssueDao implements Dao {
 
@@ -100,6 +102,16 @@ public class IssueDao implements Dao {
     for (IssueDto other : others) {
       mapper.insert(other);
     }
+  }
+
+  public void scroll(DbSession dbSession, @Nullable String rootUuid, List<String> kees, Consumer<IssueForIndexingDto> consumer) {
+    IssueMapper issueMapper = mapper(dbSession);
+
+    executeLargeInputsWithoutOutput(kees,
+      pageOfKees -> issueMapper
+        .selectForIndexing(rootUuid, pageOfKees)
+        .forEach(consumer)
+    );
   }
 
   public void update(DbSession session, IssueDto dto) {
