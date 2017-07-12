@@ -6,7 +6,6 @@ script: ./travis.sh
 dist: trusty
 
 env:
-  - TARGET=BUILD
   - TARGET=WEB_TESTS
 
 matrix:

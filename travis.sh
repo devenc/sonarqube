@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-./.travis/setup_ramdisk.sh
+#./.travis/setup_ramdisk.sh
 
 #
 # A (too) old version of JDK8 is installed by default on Travis.
